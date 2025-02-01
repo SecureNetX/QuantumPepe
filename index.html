@@ -16,11 +16,11 @@
     }
 
     .pepe-logo {
-        width: 160px;
+        width: 170px;
         height: auto;
         position: absolute;
         right: 50px;
-        top: 170px;
+        top: 180px;
         z-index: 10;
     }
 
@@ -286,61 +286,47 @@
 <script>
 document.addEventListener("DOMContentLoaded", async function () {
     const providerOptions = {
-        walletconnect: {
-            package: window.WalletConnectProvider.default,
-            options: {
-                infuraId: "YOUR_INFURA_ID" // Falls du Infura nutzt, sonst leer lassen
-            }
-        },
-        coinbasewallet: {
-            package: window.CoinbaseWalletSDK,
-            options: {
-                appName: "QuantumPepe",
-                infuraId: "YOUR_INFURA_ID",
-                rpc: "https://mainnet.infura.io/v3/YOUR_INFURA_ID", // Falls du eine eigene RPC-URL hast
-                chainId: 1
-            }
-        }
-    };
+        // Web3Modal initialisieren
+const web3Modal = new window.Web3Modal.default({
+    cacheProvider: false, 
+    providerOptions,
+    theme: "dark" 
+});
 
-    const web3Modal = new Web3Modal({
-        cacheProvider: true,
-        providerOptions
-    });
+// Elemente abrufen
+const walletButton = document.querySelector(".wallet-button");
+const disconnectButton = document.querySelector(".disconnect-wallet");
 
-    let provider;
-    let web3;
+// Wallet verbinden
+async function connectWallet() {
+    try {
+        const provider = await web3Modal.connect();
+        const web3 = new window.Web3(provider);
 
-    const walletButton = document.querySelector(".wallet-button");
-    const disconnectButton = document.querySelector(".disconnect-wallet");
+        const accounts = await web3.eth.getAccounts();
+        console.log("Wallet verbunden mit Adresse:", accounts[0]);
 
-    async function connectWallet() {
-        try {
-            provider = await web3Modal.connect();
-            web3 = new ethers.providers.Web3Provider(provider);
-
-            const accounts = await web3.listAccounts();
-            console.log("Wallet verbunden mit Adresse:", accounts[0]);
-
-            walletButton.textContent = "Wallet Connected";
-            walletButton.style.backgroundColor = "#009900";
-            disconnectButton.style.display = "block";
-        } catch (error) {
-            console.error("Wallet Verbindung fehlgeschlagen:", error);
-        }
+        walletButton.textContent = "Wallet Verbunden";
+        walletButton.style.backgroundColor = "#009900";
+        disconnectButton.style.display = "block"; 
+    } catch (error) {
+        console.error("Wallet Verbindung fehlgeschlagen:", error);
     }
+}
 
-    async function disconnectWallet() {
-        web3Modal.clearCachedProvider();
-        provider = null;
-        walletButton.textContent = "Connect Wallet";
-        walletButton.style.backgroundColor = "#00ff00";
-        disconnectButton.style.display = "none";
-        console.log("Wallet disconnected!");
-    }
+// Wallet trennen
+async function disconnectWallet() {
+    await web3Modal.clearCachedProvider();
+    walletButton.textContent = "Wallet Verbinden";
+    walletButton.style.backgroundColor = "#00ff00";
+    disconnectButton.style.display = "none";
+    console.log("Wallet wurde getrennt!");
+}
 
-    walletButton.addEventListener("click", connectWallet);
-    disconnectButton.addEventListener("click", disconnectWallet);
+// Event-Listener für Buttons
+walletButton.addEventListener("click", connectWallet);
+disconnectButton.addEventListener("click", disconnectWallet);
+
 });
        updateButtons();
 });
