@@ -272,7 +272,96 @@
         });
     });
 </script>
+    <footer>
+        <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
+    </footer>
+
+    <!-- HIER KOMMT DER NEUE CODE HIN -->
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.8/web3modal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        const walletButton = document.querySelector(".wallet-button");
+        const disconnectButton = document.querySelector(".disconnect-wallet");
+
+        let web3Modal;
+        let provider;
+        let signer;
+        let walletConnected = localStorage.getItem("walletConnected") === "true";
+
+        function updateButtons() {
+            if (walletConnected) {
+                walletButton.textContent = "Wallet Connected";
+                walletButton.style.backgroundColor = "#009900";
+                disconnectButton.style.display = "block";
+            } else {
+                walletButton.textContent = "Connect Wallet";
+                walletButton.style.backgroundColor = "#00ff00";
+                disconnectButton.style.display = "none";
+            }
+        }
+
+        async function connectWallet() {
+            try {
+                if (!web3Modal) {
+                    web3Modal = new Web3Modal({
+                        cacheProvider: true,
+                        providerOptions: {
+                            walletconnect: {
+                                package: window.WalletConnectProvider.default,
+                                options: { rpc: { 1: "https://mainnet.infura.io/v3/YOUR_INFURA_ID" } }
+                            },
+                            coinbasewallet: {
+                                package: window.CoinbaseWalletSDK,
+                                options: { appName: "QuantumPepe" }
+                            }
+                        }
+                    });
+                }
+
+                provider = await web3Modal.connect();
+                const ethersProvider = new ethers.providers.Web3Provider(provider);
+                signer = ethersProvider.getSigner();
+                const userAddress = await signer.getAddress();
+
+                console.log("Wallet connected:", userAddress);
+                walletConnected = true;
+                localStorage.setItem("walletConnected", "true");
+
+                updateButtons();
+            } catch (error) {
+                console.error("Wallet connection failed:", error);
+            }
+        }
+
+        function disconnectWallet() {
+            if (web3Modal) {
+                web3Modal.clearCachedProvider();
+            }
+            localStorage.removeItem("walletConnected");
+            walletConnected = false;
+            updateButtons();
+            console.log("Wallet disconnected.");
+        }
+
+        walletButton.addEventListener("click", () => {
+            if (!walletConnected) {
+                connectWallet();
+            }
+        });
+
+        disconnectButton.addEventListener("click", () => {
+            disconnectWallet();
+        });
+
+        updateButtons();
+    });
+    </script>
 
 </body>
 </html>
+
+
+
 
