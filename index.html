@@ -39,6 +39,21 @@
     width: 50%;
     text-align: center;
 }
+.disconnect-wallet {
+    background: #ff0000;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+    display: none; /* Standardmäßig versteckt */
+}
+
+.disconnect-wallet:hover {
+    background: #cc0000;
+}
 
 .wallet-button {
     background: #00ff00;
@@ -107,6 +122,7 @@ footer {
             <p>Verbinde dein Wallet und sichere dir QuantumPepe!</p>
             <button class="wallet-button">Wallet Verbinden</button>
             <button class="disconnect-wallet" style="display: none;">Wallet Trennen</button>
+
             <div class="fund-info">
     <p>Bereits gesammelt: <span id="total-collected">0</span> ETH</p>
     <p>In Liquidität fließend: <span id="liquidity-flow">0</span> ETH</p>
@@ -159,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (walletConnected) {
         walletButton.textContent = "Wallet Verbunden";
         walletButton.style.backgroundColor = "#009900";
-        disconnectButton.style.display = "block"; // "Trennen"-Button anzeigen
+        disconnectButton.style.display = "block"; // Zeigt den Trennen-Button
     }
 
     async function connectWallet() {
@@ -170,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem("walletConnected", "true");
                 walletButton.textContent = "Wallet Verbunden";
                 walletButton.style.backgroundColor = "#009900";
-                disconnectButton.style.display = "block"; // "Trennen"-Button anzeigen
+                disconnectButton.style.display = "block"; // Zeigt den Trennen-Button
 
                 console.log("Wallet verbunden mit Adresse:", accounts[0]);
 
@@ -186,6 +202,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function disconnectWallet() {
+        localStorage.removeItem("walletConnected");
+        walletConnected = false;
+        walletButton.textContent = "Wallet Verbinden";
+        walletButton.style.backgroundColor = "#00ff00";
+        disconnectButton.style.display = "none"; // Button verstecken
+        console.log("Wallet wurde getrennt!");
+    }
+
     walletButton.addEventListener("click", function () {
         if (!walletConnected) {
             connectWallet();
@@ -193,14 +218,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     disconnectButton.addEventListener("click", function () {
-        localStorage.removeItem("walletConnected");
-        walletConnected = false;
-        walletButton.textContent = "Wallet Verbinden";
-        walletButton.style.backgroundColor = "#00ff00";
-        disconnectButton.style.display = "none"; // Button wieder ausblenden
-        console.log("Wallet wurde getrennt!");
+        disconnectWallet();
     });
 });
+
 
 </script>
 </body>
