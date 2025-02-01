@@ -271,16 +271,14 @@
     <footer>
         <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
     </footer>
-    <script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.umd.min.js"></script>
-
-    <script>
     
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
+<script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.8/web3modal.min.js"></script>
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.8/web3modal.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
 <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
@@ -289,9 +287,9 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const providerOptions = {
         walletconnect: {
-            package: window.WalletConnectProvider,
+            package: window.WalletConnectProvider.default,
             options: {
-                infuraId: "YOUR_INFURA_ID" // Ersetze das mit deiner Infura ID
+                infuraId: "YOUR_INFURA_ID" // Falls du Infura nutzt, sonst leer lassen
             }
         },
         coinbasewallet: {
@@ -299,26 +297,31 @@ document.addEventListener("DOMContentLoaded", async function () {
             options: {
                 appName: "QuantumPepe",
                 infuraId: "YOUR_INFURA_ID",
-                rpc: "", // Falls du eine eigene RPC-URL hast
+                rpc: "https://mainnet.infura.io/v3/YOUR_INFURA_ID", // Falls du eine eigene RPC-URL hast
                 chainId: 1
             }
         }
     };
 
-    const web3Modal = new window.Web3Modal({
+    const web3Modal = new Web3Modal({
         cacheProvider: true,
         providerOptions
     });
 
+    let provider;
+    let web3;
+
     const walletButton = document.querySelector(".wallet-button");
     const disconnectButton = document.querySelector(".disconnect-wallet");
-
-    let provider;
 
     async function connectWallet() {
         try {
             provider = await web3Modal.connect();
-            console.log("Wallet verbunden:", provider);
+            web3 = new ethers.providers.Web3Provider(provider);
+
+            const accounts = await web3.listAccounts();
+            console.log("Wallet verbunden mit Adresse:", accounts[0]);
+
             walletButton.textContent = "Wallet Connected";
             walletButton.style.backgroundColor = "#009900";
             disconnectButton.style.display = "block";
@@ -339,10 +342,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     walletButton.addEventListener("click", connectWallet);
     disconnectButton.addEventListener("click", disconnectWallet);
 });
-
-
-
-    updateButtons();
+       updateButtons();
 });
 </script>
 
