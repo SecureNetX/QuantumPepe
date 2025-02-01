@@ -287,84 +287,59 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async function () {
+    const providerOptions = {
+        walletconnect: {
+            package: window.WalletConnectProvider,
+            options: {
+                infuraId: "YOUR_INFURA_ID" // Ersetze das mit deiner Infura ID
+            }
+        },
+        coinbasewallet: {
+            package: window.CoinbaseWalletSDK,
+            options: {
+                appName: "QuantumPepe",
+                infuraId: "YOUR_INFURA_ID",
+                rpc: "", // Falls du eine eigene RPC-URL hast
+                chainId: 1
+            }
+        }
+    };
+
+    const web3Modal = new window.Web3Modal({
+        cacheProvider: true,
+        providerOptions
+    });
+
     const walletButton = document.querySelector(".wallet-button");
     const disconnectButton = document.querySelector(".disconnect-wallet");
-    const totalCollected = document.getElementById("total-collected");
-    const liquidityFlow = document.getElementById("liquidity-flow");
 
     let provider;
-    let web3Modal;
-    let web3;
-
-    async function initWeb3Modal() {
-        const providerOptions = {
-            walletconnect: {
-                package: window.WalletConnectProvider.default,
-                options: {
-                    rpc: {
-                        1: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID" // Infura-ID einfügen oder Standard lassen
-                    }
-                }
-            },
-            coinbasewallet: {
-                package: window.CoinbaseWalletSDK,
-                options: {
-                    appName: "QuantumPepe",
-                    rpc: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
-                    chainId: 1
-                }
-            }
-        };
-
-        web3Modal = new window.Web3Modal.default({
-            cacheProvider: true,
-            providerOptions
-        });
-    }
 
     async function connectWallet() {
         try {
             provider = await web3Modal.connect();
-            web3 = new ethers.providers.Web3Provider(provider);
-            const accounts = await web3.listAccounts();
-
-            if (accounts.length > 0) {
-                localStorage.setItem("walletConnected", "true");
-                walletButton.textContent = "Wallet Connected";
-                walletButton.style.backgroundColor = "#009900";
-                disconnectButton.style.display = "block";
-                console.log("Connected Wallet:", accounts[0]);
-            }
+            console.log("Wallet verbunden:", provider);
+            walletButton.textContent = "Wallet Connected";
+            walletButton.style.backgroundColor = "#009900";
+            disconnectButton.style.display = "block";
         } catch (error) {
-            console.error("Wallet connection failed:", error);
+            console.error("Wallet Verbindung fehlgeschlagen:", error);
         }
     }
 
-    function disconnectWallet() {
-        if (web3Modal) {
-            web3Modal.clearCachedProvider();
-        }
-        localStorage.removeItem("walletConnected");
+    async function disconnectWallet() {
+        web3Modal.clearCachedProvider();
+        provider = null;
         walletButton.textContent = "Connect Wallet";
         walletButton.style.backgroundColor = "#00ff00";
         disconnectButton.style.display = "none";
-        console.log("Wallet disconnected");
+        console.log("Wallet disconnected!");
     }
 
-    await initWeb3Modal();
-
-    walletButton.addEventListener("click", function () {
-        connectWallet();
-    });
-
-    disconnectButton.addEventListener("click", function () {
-        disconnectWallet();
-    });
-
-    if (localStorage.getItem("walletConnected") === "true") {
-        connectWallet();
-    }
+    walletButton.addEventListener("click", connectWallet);
+    disconnectButton.addEventListener("click", disconnectWallet);
 });
+
 
 
     updateButtons();
