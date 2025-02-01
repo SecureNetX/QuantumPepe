@@ -5,23 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuantumPepe Presale</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: #004d00;
+            color: #ffffff;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+        }
+        .ai-title {
+            font-size: 3em;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        .presale {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            width: 50%;
+        }
+        .wallet-button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .stages {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .stage {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            width: 25%;
+        }
+        footer {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.6);
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>QuantumPepe ist da!</h1>
+        <h1 class="ai-title">QuantumPepe ist da!</h1>
     </header>
     
     <main>
         <section class="presale">
             <h2>Presale ist live!</h2>
             <p>Verbinde dein Wallet und sichere dir QuantumPepe!</p>
-            <button id="connect-wallet">Wallet Verbinden</button>
-            <div class="presale-info">
-                <p>Bereits gesammelt: <span id="collected">0</span> ETH</p>
-                <p>In Liquidität fließend: <span id="liquidity">0</span> ETH</p>
+            <button class="wallet-button">Wallet Verbinden</button>
+            <div class="fund-info">
+                <p>Bereits gesammelt: <span id="total-collected">0</span> ETH</p>
+                <p>In Liquidität fließend: <span id="liquidity-flow">0</span> ETH</p>
             </div>
         </section>
-        
+
         <section class="stages">
             <div class="stage">
                 <h3>Stage 1</h3>
@@ -50,12 +94,10 @@
             </div>
         </section>
     </main>
-    
+
     <footer>
         <p>&copy; 2025 QuantumPepe. Alle Rechte vorbehalten.</p>
     </footer>
-    
-    <script src="script.js"></script>
 </body>
 </html>
 
