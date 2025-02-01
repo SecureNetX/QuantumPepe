@@ -106,6 +106,7 @@ footer {
             <h2>Presale ist live!</h2>
             <p>Verbinde dein Wallet und sichere dir QuantumPepe!</p>
             <button class="wallet-button">Wallet Verbinden</button>
+            <button class="disconnect-wallet" style="display: none;">Wallet Trennen</button>
             <div class="fund-info">
     <p>Bereits gesammelt: <span id="total-collected">0</span> ETH</p>
     <p>In Liquidität fließend: <span id="liquidity-flow">0</span> ETH</p>
@@ -149,6 +150,7 @@ footer {
      <script>
 document.addEventListener("DOMContentLoaded", function () {
     const walletButton = document.querySelector(".wallet-button");
+    const disconnectButton = document.querySelector(".disconnect-wallet");
     const totalCollected = document.getElementById("total-collected");
     const liquidityFlow = document.getElementById("liquidity-flow");
 
@@ -157,6 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (walletConnected) {
         walletButton.textContent = "Wallet Verbunden";
         walletButton.style.backgroundColor = "#009900";
+        disconnectButton.style.display = "block"; // "Trennen"-Button anzeigen
     }
 
     async function connectWallet() {
@@ -167,10 +170,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem("walletConnected", "true");
                 walletButton.textContent = "Wallet Verbunden";
                 walletButton.style.backgroundColor = "#009900";
+                disconnectButton.style.display = "block"; // "Trennen"-Button anzeigen
 
                 console.log("Wallet verbunden mit Adresse:", accounts[0]);
 
-                // Simulierte Werte für Presale-Fortschritt (später durch echte ersetzen)
+                // Simulierte Werte für Presale-Fortschritt (später echte Werte einfügen)
                 totalCollected.textContent = "2.5";
                 liquidityFlow.textContent = "1.75";
 
@@ -186,6 +190,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!walletConnected) {
             connectWallet();
         }
+    });
+
+    disconnectButton.addEventListener("click", function () {
+        localStorage.removeItem("walletConnected");
+        walletConnected = false;
+        walletButton.textContent = "Wallet Verbinden";
+        walletButton.style.backgroundColor = "#00ff00";
+        disconnectButton.style.display = "none"; // Button wieder ausblenden
+        console.log("Wallet wurde getrennt!");
     });
 });
 
