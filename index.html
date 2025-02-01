@@ -280,74 +280,55 @@
 <script>
 document.addEventListener("DOMContentLoaded", async function () {
     const providerOptions = {
-       // Web3Modal & Web3.js einbinden
-const web3Modal = new Web3Modal({
-    cacheProvider: false, // Wallet nicht automatisch merken
-    providerOptions: {
         walletconnect: {
-            package: WalletConnectProvider.default,
+            package: window.WalletConnectProvider,
             options: {
-                infuraId: "YOUR_INFURA_ID" // Falls du Infura nutzt, hier deine ID eingeben
+                infuraId: "YOUR_INFURA_ID" // Falls du Infura nutzt, sonst leer lassen
             }
         },
         coinbasewallet: {
-            package: CoinbaseWalletSDK,
+            package: window.CoinbaseWalletSDK,
             options: {
-                appName: "QuantumPepe",
-                infuraId: "YOUR_INFURA_ID",
-                rpc: "https://mainnet.infura.io/v3/YOUR_INFURA_ID",
-                chainId: 1,
-                darkMode: true
+                appName: "QuantumPepe"
             }
         }
+    };
+
+    const web3Modal = new window.Web3Modal.default({
+        cacheProvider: false,
+        providerOptions
+    });
+
+    const walletButton = document.querySelector(".wallet-button");
+    const disconnectButton = document.querySelector(".disconnect-wallet");
+
+    let provider = null;
+
+    async function connectWallet() {
+        try {
+            provider = await web3Modal.connect();
+            console.log("Wallet connected:", provider);
+            walletButton.textContent = "Wallet Connected";
+            walletButton.style.backgroundColor = "#009900";
+            disconnectButton.style.display = "block";
+        } catch (error) {
+            console.error("Wallet connection failed:", error);
+        }
     }
+
+    function disconnectWallet() {
+        provider = null;
+        web3Modal.clearCachedProvider();
+        walletButton.textContent = "Connect Wallet";
+        walletButton.style.backgroundColor = "#00ff00";
+        disconnectButton.style.display = "none";
+        console.log("Wallet disconnected");
+    }
+
+    walletButton.addEventListener("click", connectWallet);
+    disconnectButton.addEventListener("click", disconnectWallet);
 });
 
-// Wallet Buttons abrufen
-const walletButton = document.querySelector(".wallet-button");
-const disconnectButton = document.querySelector(".disconnect-wallet");
-
-let provider;
-let web3;
-
-// Wallet verbinden
-async function connectWallet() {
-    try {
-        provider = await web3Modal.connect();
-        web3 = new Web3(provider);
-
-        const accounts = await web3.eth.getAccounts();
-        console.log("Wallet verbunden mit Adresse:", accounts[0]);
-
-        walletButton.textContent = "Wallet Verbunden";
-        walletButton.style.backgroundColor = "#009900";
-        disconnectButton.style.display = "block";
-
-        // Event-Listener für Wallet-Disconnect
-        provider.on("disconnect", () => {
-            disconnectWallet();
-        });
-
-    } catch (error) {
-        console.error("Wallet Verbindung fehlgeschlagen:", error);
-    }
-}
-
-// Wallet trennen
-async function disconnectWallet() {
-    await web3Modal.clearCachedProvider();
-    walletButton.textContent = "Wallet Verbinden";
-    walletButton.style.backgroundColor = "#00ff00";
-    disconnectButton.style.display = "none";
-    console.log("Wallet wurde getrennt!");
-}
-
-// Event-Listener für Buttons
-walletButton.addEventListener("click", connectWallet);
-disconnectButton.addEventListener("click", disconnectWallet);
-
-       updateButtons();
-});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
 <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
