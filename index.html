@@ -273,15 +273,14 @@
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.umd.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.8/web3modal.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script>
-    <!-- Dein existierendes Skript -->
+    
 </script>
 
-<!-- Füge den neuen Web3Modal-Code HIER ein -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.8/web3modal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.8/web3modal.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
 <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
@@ -295,29 +294,40 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let provider;
     let web3Modal;
+    let web3;
 
-    // Web3Modal Konfiguration
-    function initWeb3Modal() {
-        web3Modal = new Web3Modal({
-            cacheProvider: true, // Merkt sich die letzte Wallet
-            providerOptions: {
-                walletconnect: {
-                    package: WalletConnectProvider,
-                    options: {
-                        rpc: {
-                            1: "https://mainnet.infura.io/v3/" // Infura ID anpassen oder entfernen
-                        }
+    async function initWeb3Modal() {
+        const providerOptions = {
+            walletconnect: {
+                package: window.WalletConnectProvider.default,
+                options: {
+                    rpc: {
+                        1: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID" // Infura-ID einfügen oder Standard lassen
                     }
                 }
+            },
+            coinbasewallet: {
+                package: window.CoinbaseWalletSDK,
+                options: {
+                    appName: "QuantumPepe",
+                    rpc: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
+                    chainId: 1
+                }
             }
+        };
+
+        web3Modal = new window.Web3Modal.default({
+            cacheProvider: true,
+            providerOptions
         });
     }
 
     async function connectWallet() {
         try {
             provider = await web3Modal.connect();
-            const web3 = new ethers.providers.Web3Provider(provider);
+            web3 = new ethers.providers.Web3Provider(provider);
             const accounts = await web3.listAccounts();
+
             if (accounts.length > 0) {
                 localStorage.setItem("walletConnected", "true");
                 walletButton.textContent = "Wallet Connected";
@@ -341,8 +351,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("Wallet disconnected");
     }
 
-    // Web3Modal initialisieren
-    initWeb3Modal();
+    await initWeb3Modal();
 
     walletButton.addEventListener("click", function () {
         connectWallet();
