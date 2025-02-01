@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +13,18 @@
         text-align: center;
         margin: 0;
         padding: 0;
+    }
+
+    .language-toggle {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        background: #ffffff;
+        color: #000;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 1em;
     }
 
     .pepe-logo {
@@ -96,19 +108,6 @@
         text-align: left;
     }
 
-    .stage h3 {
-        text-align: center;
-        margin-bottom: 10px;
-    }
-
-    .stage ul {
-        list-style-type: disc;
-        padding-left: 20px;
-        text-align: left;
-        line-height: 2em;
-        font-size: 1.1em;
-    }
-
     .tokenomics {
         background: rgba(0, 0, 0, 0.6);
         padding: 30px;
@@ -118,130 +117,92 @@
         text-align: center;
         color: #ffffff;
     }
-
-    .tokenomics h2 {
-        text-shadow: 0 0 10px #00ff00;
-    }
-
-    .tokenomics-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .tokenomics-info ul {
-        list-style: none;
-        padding: 0;
-        text-align: left;
-    }
-
-    .tokenomics-info li {
-        font-size: 1.2em;
-        margin: 10px 0;
-    }
-
-    .tokenomics-chart {
-        width: 300px;
-        height: 300px;
-    }
-
-    footer {
-        margin-top: 20px;
-        padding: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        text-align: center;
-    }
-</style>  
+</style>
 </head>
 <body>
+    <button class="language-toggle">Deutsch</button>
     <header>
-        <h1 class="ai-title">QuantumPepe ist da!</h1>
+        <h1 class="ai-title" data-en="QuantumPepe is here!" data-de="QuantumPepe ist da!">QuantumPepe is here!</h1>
     </header>
     
     <main>
         <section class="presale">
-            <h2>Presale ist live!</h2>
-            <p>Verbinde dein Wallet und sichere dir QuantumPepe!</p>
+            <h2 data-en="Presale is live!" data-de="Presale ist live!">Presale is live!</h2>
+            <p data-en="Connect your wallet and secure your QuantumPepe!" data-de="Verbinde dein Wallet und sichere dir QuantumPepe!">Connect your wallet and secure your QuantumPepe!</p>
             <div class="wallet-buttons">
-                <button class="wallet-button">Wallet Verbinden</button>
-                <button class="disconnect-wallet" style="display: none;">Wallet Trennen</button>
-            </div>
-
-            <div class="fund-info">
-                <p>Bereits gesammelt: <span id="total-collected">0</span> ETH</p>
-                <p>In Liquidität fließend: <span id="liquidity-flow">0</span> ETH</p>
-            </div>
-            <img src="logo.webp" alt="QuantumPepe Logo" class="pepe-logo">
-        </section>
-
-        <section class="stages">
-            <div class="stage">
-                <h3>Stage 1</h3>
-                <ul>
-                    <li>Presale</li>
-                    <li>Liquidity</li>
-                    <li>10.000 Holders</li>
-                </ul>
-            </div>
-            <div class="stage">
-                <h3>Stage 2</h3>
-                <ul>
-                    <li>DEX Exchange</li>
-                    <li>Staking</li>
-                    <li>25.000 Holders</li>
-                </ul>
-            </div>
-            <div class="stage">
-                <h3>Stage 3</h3>
-                <ul>
-                    <li>$150M Market Cap</li>
-                    <li>Claim QuantumPepe</li>
-                    <li>CEX Listings</li>
-                    <li>50.000 Holders</li>
-                </ul>
-            </div>
-        </section>
-
-        <!-- TOKENOMICS SEKTION -->
-        <section class="tokenomics">
-            <h2>QuantumPepe Tokenomics</h2>
-            <div class="tokenomics-content">
-                <div class="tokenomics-info">
-                    <ul>
-                        <li>✔️ 40% Liquidity Pool</li>
-                        <li>✔️ 35% Presale</li>
-                        <li>✔️ 10% Reserve</li>
-                        <li>✔️ 10% Team</li>
-                        <li>✔️ 5% Marketing</li>
-                    </ul>
-                </div>
-                <div class="tokenomics-chart">
-                    <canvas id="tokenomicsChart"></canvas>
-                </div>
+                <button class="wallet-button" data-en="Connect Wallet" data-de="Wallet Verbinden">Connect Wallet</button>
+                <button class="disconnect-wallet" style="display: none;" data-en="Disconnect Wallet" data-de="Wallet Trennen">Disconnect Wallet</button>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2025 QuantumPepe. Alle Rechte vorbehalten.</p>
+        <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
     </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var ctx = document.getElementById("tokenomicsChart").getContext("2d");
-        new Chart(ctx, {
-            type: "doughnut",
-            data: {
-                labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
-                datasets: [{ data: [40, 35, 10, 10, 5], backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"] }]
-            }
-        });
-    });
-</script>
+document.addEventListener("DOMContentLoaded", function () {
+    const walletButton = document.querySelector(".wallet-button");
+    const disconnectButton = document.querySelector(".disconnect-wallet");
+    const languageToggle = document.querySelector(".language-toggle");
+    let walletConnected = localStorage.getItem("walletConnected") === "true";
 
+    function updateButtons() {
+        if (walletConnected) {
+            walletButton.textContent = walletButton.getAttribute("data-" + currentLang);
+            walletButton.style.backgroundColor = "#009900";
+            disconnectButton.style.display = "block";
+        } else {
+            walletButton.textContent = walletButton.getAttribute("data-" + currentLang);
+            walletButton.style.backgroundColor = "#00ff00";
+            disconnectButton.style.display = "none";
+        }
+    }
+    
+    async function connectWallet() {
+        if (typeof window.ethereum !== "undefined") {
+            try {
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                walletConnected = true;
+                localStorage.setItem("walletConnected", "true");
+                updateButtons();
+            } catch (error) {
+                console.error("Wallet connection failed:", error);
+            }
+        } else {
+            alert("No crypto wallet found. Please install MetaMask or another wallet.");
+        }
+    }
+
+    function disconnectWallet() {
+        localStorage.removeItem("walletConnected");
+        walletConnected = false;
+        updateButtons();
+    }
+
+    walletButton.addEventListener("click", function () {
+        if (!walletConnected) {
+            connectWallet();
+        }
+    });
+
+    disconnectButton.addEventListener("click", function () {
+        disconnectWallet();
+    });
+
+    let currentLang = "en";
+    languageToggle.addEventListener("click", function () {
+        currentLang = currentLang === "en" ? "de" : "en";
+        document.querySelectorAll("[data-en]").forEach(el => {
+            el.textContent = el.getAttribute("data-" + currentLang);
+        });
+        languageToggle.textContent = currentLang === "en" ? "Deutsch" : "English";
+    });
+});
+</script>
 </body>
 </html>
+
 
 
 
