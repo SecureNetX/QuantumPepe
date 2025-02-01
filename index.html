@@ -39,15 +39,36 @@
     width: 50%;
     text-align: center;
 }
+.wallet-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Abstand zwischen den Buttons */
+    margin-top: 10px;
+}
+
+.wallet-button, .disconnect-wallet {
+    width: 180px;
+    height: 45px;
+    font-size: 1.2em;
+    border-radius: 8px;
+}
+
+.wallet-button {
+    background: #00ff00;
+    color: #000;
+    border: none;
+    cursor: pointer;
+}
+
+.wallet-button:hover {
+    background: #33ff33;
+}
+
 .disconnect-wallet {
     background: #ff0000;
     color: #ffffff;
     border: none;
-    padding: 10px 20px;
-    font-size: 1.2em;
     cursor: pointer;
-    border-radius: 5px;
-    margin-top: 10px;
     display: none; /* Standardmäßig versteckt */
 }
 
@@ -55,20 +76,6 @@
     background: #cc0000;
 }
 
-.wallet-button {
-    background: #00ff00;
-    color: #000;
-    border: none;
-    padding: 10px 20px;
-    font-size: 1.2em;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 10px;
-}
-
-.wallet-button:hover {
-    background: #33ff33;
-}
 
 .fund-info {
     margin-top: 10px;
@@ -120,9 +127,11 @@ footer {
         <section class="presale">
             <h2>Presale ist live!</h2>
             <p>Verbinde dein Wallet und sichere dir QuantumPepe!</p>
+            <div class="wallet-buttons">
             <button class="wallet-button">Wallet Verbinden</button>
             <button class="disconnect-wallet" style="display: none;">Wallet Trennen</button>
-
+            </div>
+ 
             <div class="fund-info">
     <p>Bereits gesammelt: <span id="total-collected">0</span> ETH</p>
     <p>In Liquidität fließend: <span id="liquidity-flow">0</span> ETH</p>
@@ -172,11 +181,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let walletConnected = localStorage.getItem("walletConnected") === "true";
 
-    if (walletConnected) {
-        walletButton.textContent = "Wallet Verbunden";
-        walletButton.style.backgroundColor = "#009900";
-        disconnectButton.style.display = "block"; // Zeigt den Trennen-Button
+    function updateButtons() {
+        if (walletConnected) {
+            walletButton.textContent = "Wallet Verbunden";
+            walletButton.style.backgroundColor = "#009900";
+            disconnectButton.style.display = "block";
+        } else {
+            walletButton.textContent = "Wallet Verbinden";
+            walletButton.style.backgroundColor = "#00ff00";
+            disconnectButton.style.display = "none";
+        }
     }
+
+    updateButtons(); // Setzt die Buttons beim Laden richtig
 
     async function connectWallet() {
         if (typeof window.ethereum !== "undefined") {
@@ -184,15 +201,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
                 walletConnected = true;
                 localStorage.setItem("walletConnected", "true");
-                walletButton.textContent = "Wallet Verbunden";
-                walletButton.style.backgroundColor = "#009900";
-                disconnectButton.style.display = "block"; // Zeigt den Trennen-Button
 
                 console.log("Wallet verbunden mit Adresse:", accounts[0]);
 
                 // Simulierte Werte für Presale-Fortschritt (später echte Werte einfügen)
                 totalCollected.textContent = "2.5";
                 liquidityFlow.textContent = "1.75";
+
+                updateButtons();
 
             } catch (error) {
                 console.error("Wallet Verbindung fehlgeschlagen:", error);
@@ -205,9 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function disconnectWallet() {
         localStorage.removeItem("walletConnected");
         walletConnected = false;
-        walletButton.textContent = "Wallet Verbinden";
-        walletButton.style.backgroundColor = "#00ff00";
-        disconnectButton.style.display = "none"; // Button verstecken
+        updateButtons();
         console.log("Wallet wurde getrennt!");
     }
 
@@ -221,6 +235,7 @@ document.addEventListener("DOMContentLoaded", function () {
         disconnectWallet();
     });
 });
+
 
 
 </script>
