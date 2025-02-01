@@ -286,29 +286,54 @@
 <script>
 document.addEventListener("DOMContentLoaded", async function () {
     const providerOptions = {
-        // Web3Modal initialisieren
-const web3Modal = new window.Web3Modal.default({
-    cacheProvider: false, 
-    providerOptions,
-    theme: "dark" 
+       // Web3Modal & Web3.js einbinden
+const web3Modal = new Web3Modal({
+    cacheProvider: false, // Wallet nicht automatisch merken
+    providerOptions: {
+        walletconnect: {
+            package: WalletConnectProvider.default,
+            options: {
+                infuraId: "YOUR_INFURA_ID" // Falls du Infura nutzt, hier deine ID eingeben
+            }
+        },
+        coinbasewallet: {
+            package: CoinbaseWalletSDK,
+            options: {
+                appName: "QuantumPepe",
+                infuraId: "YOUR_INFURA_ID",
+                rpc: "https://mainnet.infura.io/v3/YOUR_INFURA_ID",
+                chainId: 1,
+                darkMode: true
+            }
+        }
+    }
 });
 
-// Elemente abrufen
+// Wallet Buttons abrufen
 const walletButton = document.querySelector(".wallet-button");
 const disconnectButton = document.querySelector(".disconnect-wallet");
+
+let provider;
+let web3;
 
 // Wallet verbinden
 async function connectWallet() {
     try {
-        const provider = await web3Modal.connect();
-        const web3 = new window.Web3(provider);
+        provider = await web3Modal.connect();
+        web3 = new Web3(provider);
 
         const accounts = await web3.eth.getAccounts();
         console.log("Wallet verbunden mit Adresse:", accounts[0]);
 
         walletButton.textContent = "Wallet Verbunden";
         walletButton.style.backgroundColor = "#009900";
-        disconnectButton.style.display = "block"; 
+        disconnectButton.style.display = "block";
+
+        // Event-Listener für Wallet-Disconnect
+        provider.on("disconnect", () => {
+            disconnectWallet();
+        });
+
     } catch (error) {
         console.error("Wallet Verbindung fehlgeschlagen:", error);
     }
@@ -327,7 +352,6 @@ async function disconnectWallet() {
 walletButton.addEventListener("click", connectWallet);
 disconnectButton.addEventListener("click", disconnectWallet);
 
-});
        updateButtons();
 });
 </script>
