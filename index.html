@@ -113,7 +113,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        max-width: 600px;
+        max-width: 700px;
         margin: auto;
     }
 
@@ -251,10 +251,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         walletButton.textContent = "Connect Wallet";
         disconnectButton.style.display = "none";
     });
+
+    new Chart(document.getElementById("tokenomicsChart"), {
+        type: "doughnut",
+        data: { labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"], datasets: [{ data: [40, 35, 10, 10, 5] }] }
+    });
 });
 </script>
 
 </body>
 </html>
+
 
 
