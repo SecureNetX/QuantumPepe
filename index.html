@@ -2,67 +2,73 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>WalletConnect V2 Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web3Modal V2 Test</title>
+  <style>
+    body {
+      background-color: #004d00;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <button id="connectBtn">Connect Wallet</button>
-  
-  <!-- Lade den UMD Build von Web3Modal V2 -->
-  <script src="https://cdn.jsdelivr.net/npm/@web3modal/html@2.0.8/dist/index.umd.min.js"></script>
-  <!-- Lade den WalletConnect Provider V2 -->
-  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@2/dist/umd/index.min.js"></script>
-  <!-- Lade Ethers.js -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  
-  <script>
-    // Prüfe, was unter window.Web3ModalHtml verfügbar ist
-    console.log("window.Web3ModalHtml:", window.Web3ModalHtml);
+  <h1>Web3Modal V2 Test</h1>
+  <button id="connectButton">Connect Wallet</button>
 
-    // Versuche, den Konstruktor zu ermitteln
-    let Web3ModalConstructor = null;
-    if (window.Web3ModalHtml) {
-      if (window.Web3ModalHtml.Web3Modal) {
-        Web3ModalConstructor = window.Web3ModalHtml.Web3Modal;
-      } else {
-        // Falls keine separate Eigenschaft existiert, könnte das Modul direkt exportiert werden
-        Web3ModalConstructor = window.Web3ModalHtml;
+  <!-- Wir verwenden ES‑Module über Skypack -->
+  <script type="module">
+    // Importiere Web3Modal V2 aus dem ES‑Module CDN
+    import { Web3Modal } from "https://cdn.skypack.dev/@web3modal/html@2.0.8";
+    // Importiere den WalletConnect Provider V2
+    import WalletConnectProvider from "https://cdn.skypack.dev/@walletconnect/web3-provider@2";
+    // Importiere ethers.js
+    import { ethers } from "https://cdn.skypack.dev/ethers@5";
+
+    // Konfiguriere Web3Modal V2
+    const web3Modal = new Web3Modal({
+      projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Dein WalletConnect V2 Project ID
+      themeMode: "dark",
+      defaultChain: 1,
+      mobileWallets: [
+        { name: "MetaMask", deepLink: "metamask://", id: "metamask" },
+        { name: "Trust Wallet", deepLink: "trust://", id: "trust" },
+        { name: "Coinbase Wallet", deepLink: "cbwallet://", id: "coinbase" },
+        { name: "Rainbow", deepLink: "rainbow://", id: "rainbow" }
+      ],
+      providerOptions: {
+        walletconnect: {
+          package: WalletConnectProvider,
+          options: {
+            projectId: "c1b3c575703c52649f0a69c9e6b3e836"
+          }
+        }
       }
-    }
+    });
 
-    if (!Web3ModalConstructor) {
-      console.error("Web3Modal constructor not found!");
-    } else {
-      console.log("Using Web3Modal constructor:", Web3ModalConstructor);
-    }
-
-    document.getElementById("connectBtn").addEventListener("click", async () => {
+    // Füge den Event-Listener zum Button hinzu
+    document.getElementById("connectButton").addEventListener("click", async () => {
       try {
-        // Erstelle eine Instanz von Web3Modal V2 mit deiner Konfiguration
-        const web3Modal = new Web3ModalConstructor({
-          projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Dein WalletConnect V2 Project ID
-          themeMode: "dark",
-          defaultChain: 1,
-          mobileWallets: [
-            { name: "MetaMask", deepLink: "metamask://", id: "metamask" },
-            { name: "Trust Wallet", deepLink: "trust://", id: "trust" },
-            { name: "Coinbase Wallet", deepLink: "cbwallet://", id: "coinbase" },
-            { name: "Rainbow", deepLink: "rainbow://", id: "rainbow" }
-          ]
-        });
-        
-        // Öffne das Modal, um eine Wallet auszuwählen
         const provider = await web3Modal.connect();
-        console.log("Provider:", provider);
-        
-        // Erzeuge einen ethers.js Provider und liste die Konten auf
+        console.log("Connected provider:", provider);
         const ethersProvider = new ethers.providers.Web3Provider(provider);
         const accounts = await ethersProvider.listAccounts();
-        alert("Connected: " + accounts[0]);
+        console.log("Connected accounts:", accounts);
+        alert("Connected: " + (accounts[0] || "No accounts found"));
       } catch (error) {
-        console.error("Error connecting:", error);
-        alert("Failed to connect wallet.");
+        console.error("Error connecting wallet:", error);
+        alert("Failed to connect wallet. Check console for details.");
       }
     });
   </script>
 </body>
 </html>
+
