@@ -2,12 +2,12 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Wallet Test</title>
+  <title>WalletConnect V2 Test</title>
 </head>
 <body>
   <button id="connectBtn">Connect Wallet</button>
-
-  <!-- Web3Modal V2 -->
+  
+  <!-- Web3Modal V2 (über @web3modal/html) -->
   <script src="https://cdn.jsdelivr.net/npm/@web3modal/html@2/dist/index.iife.js"></script>
   <!-- WalletConnect Provider V2 -->
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@2/dist/umd/index.min.js"></script>
@@ -17,8 +17,9 @@
   <script>
     document.getElementById("connectBtn").addEventListener("click", async () => {
       try {
-        const web3Modal = new window.Web3ModalHtml.Web3Modal({
-          projectId: "c1b3c575703c52649f0a69c9e6b3e836",
+        // Verwende den globalen Namen "Web3Modal" statt "Web3ModalHtml"
+        const web3Modal = new window.Web3Modal({
+          projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Dein WalletConnect V2 Project ID
           themeMode: "dark",
           defaultChain: 1,
           mobileWallets: [
@@ -41,3 +42,4 @@
   </script>
 </body>
 </html>
+
