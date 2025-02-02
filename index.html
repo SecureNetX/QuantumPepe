@@ -252,21 +252,44 @@
 
         updateButtons();
 
-        walletButton.addEventListener("click", async function () {
-            if (!walletConnected && window.ethereum) {
-                await window.ethereum.request({ method: "eth_requestAccounts" });
-                walletConnected = true;
-                localStorage.setItem("walletConnected", "true");
-                updateButtons();
+        document.addEventListener("DOMContentLoaded", async function () {
+    const providerOptions = {
+        walletconnect: {
+            package: window.WalletConnectProvider.default,
+            options: {
+                infuraId: "YOUR_INFURA_ID" // Falls du Infura nutzt, sonst leer lassen
             }
-        });
+        },
+        coinbasewallet: {
+            package: window.CoinbaseWalletSDK,
+            options: {
+                appName: "QuantumPepe"
+            }
+        }
+    };
 
-        disconnectButton.addEventListener("click", function () {
-            localStorage.removeItem("walletConnected");
-            walletConnected = false;
-            updateButtons();
-        });
+    const web3Modal = new window.Web3Modal.default({
+        cacheProvider: false, // Kein automatisches Speichern der letzten Wallet
+        disableInjectedProvider: false, // Deaktiviert automatisches MetaMask-Login
+        providerOptions
     });
+
+    let provider = null;
+
+    async function connectWallet() {
+        try {
+            provider = await web3Modal.connect();
+            console.log("Wallet connected:", provider);
+        } catch (error) {
+            console.error("Wallet connection failed:", error);
+        }
+    }
+
+    document.querySelector(".wallet-button").addEventListener("click", async () => {
+        await connectWallet();
+    });
+});
+
 </script>
     <footer>
         <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
