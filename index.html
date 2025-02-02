@@ -230,12 +230,12 @@
       // Konfiguration der Provider-Optionen für Web3Modal
       const providerOptions = {
         walletconnect: {
-          package: WalletConnectProvider, // walletconnect als Package
+          package: WalletConnectProvider, // WalletConnect als Package
           options: {
             infuraId: "YOUR_INFURA_ID" // Ersetze "YOUR_INFURA_ID" mit deiner Infura Project ID
           }
         }
-        // Hier können weitere Anbieter hinzugefügt werden (z. B. Coinbase Wallet)
+        // Weitere Anbieter (z. B. Coinbase Wallet) können hier hinzugefügt werden.
       };
 
       // Web3Modal initialisieren
@@ -268,13 +268,18 @@
           try {
             // Öffnet das Web3Modal, sodass der Nutzer einen Anbieter auswählen kann
             const provider = await web3Modal.connect();
-            // Erzeugen eines Ethers-Providers
+            // Erzeugt einen Ethers-Provider
             const ethersProvider = new ethers.providers.Web3Provider(provider);
+            // Ruft die verbundenen Konten ab
             const accounts = await ethersProvider.listAccounts();
             if (accounts.length > 0) {
               walletConnected = true;
               localStorage.setItem("walletConnected", "true");
               updateButtons();
+              console.log("Verbundenes Konto:", accounts[0]);
+              alert("Wallet verbunden: " + accounts[0]);
+            } else {
+              alert("Kein Konto gefunden. Bitte überprüfe deine Wallet.");
             }
           } catch (error) {
             console.error("Wallet-Verbindung fehlgeschlagen:", error);
