@@ -76,9 +76,19 @@
         background: #cc0000;
     }
 
-    .fund-info {
-        margin-top: 10px;
-        font-size: 1.1em;
+    .stages {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .stage {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 20px;
+        border-radius: 10px;
+        width: 30%;
+        text-align: left;
     }
 
     .tokenomics-content {
@@ -89,21 +99,9 @@
         margin: auto;
     }
 
-    .tokenomics-info {
-        text-align: left;
-        font-size: 1.1em;
-    }
-
     .tokenomics-chart {
         width: 300px;
         height: 300px;
-    }
-
-    footer {
-        margin-top: 20px;
-        padding: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        text-align: center;
     }
 </style>  
 </head>
@@ -121,7 +119,8 @@
                 <button class="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
             </div>
         </section>
-<section class="stages">
+
+        <section class="stages">
             <div class="stage">
                 <h3>Stage 1</h3>
                 <ul>
@@ -148,33 +147,25 @@
                 </ul>
             </div>
         </section>
+
         <section class="tokenomics">
             <h2>QuantumPepe Tokenomics</h2>
             <div class="tokenomics-content">
-                <div class="tokenomics-info">
-                    <ul>
-                        <li>✔️ <strong>40%</strong> Liquidity Pool</li>
-                        <li>✔️ <strong>35%</strong> Presale</li>
-                        <li>✔️ <strong>10%</strong> Reserve</li>
-                        <li>✔️ <strong>10%</strong> Team</li>
-                        <li>✔️ <strong>5%</strong> Marketing</li>
-                    </ul>
-                </div>
-                <div class="tokenomics-chart">
-                    <canvas id="tokenomicsChart"></canvas>
-                </div>
+                <ul>
+                    <li>✔️ 40% Liquidity Pool</li>
+                    <li>✔️ 35% Presale</li>
+                    <li>✔️ 10% Reserve</li>
+                    <li>✔️ 10% Team</li>
+                    <li>✔️ 5% Marketing</li>
+                </ul>
+                <canvas id="tokenomicsChart"></canvas>
             </div>
         </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers"></script>
-
     <script>
-        document.addEventListener("DOMContentLoaded", async function () {
+        document.addEventListener("DOMContentLoaded", function () {
             var ctx = document.getElementById("tokenomicsChart").getContext("2d");
             new Chart(ctx, {
                 type: "doughnut",
@@ -186,52 +177,6 @@
                     }]
                 }
             });
-
-            const walletButton = document.querySelector(".wallet-button");
-            const disconnectButton = document.querySelector(".disconnect-wallet");
-            let web3Modal;
-            
-            async function initWeb3Modal() {
-                const providerOptions = {
-                    walletconnect: {
-                        package: WalletConnectProvider.default,
-                        options: { infuraId: "YOUR_INFURA_ID" }
-                    },
-                    coinbasewallet: {
-                        package: CoinbaseWalletSDK,
-                        options: { appName: "QuantumPepe" }
-                    }
-                };
-
-                web3Modal = new Web3Modal({
-                    cacheProvider: false,
-                    providerOptions
-                });
-            }
-
-            async function connectWallet() {
-                try {
-                    const provider = await web3Modal.connect();
-                    console.log("Wallet connected:", provider);
-                    walletButton.textContent = "Wallet Connected";
-                    walletButton.style.backgroundColor = "#009900";
-                    disconnectButton.style.display = "block";
-                } catch (error) {
-                    console.error("Wallet connection failed:", error);
-                }
-            }
-
-            function disconnectWallet() {
-                web3Modal.clearCachedProvider();
-                walletButton.textContent = "Connect Wallet";
-                walletButton.style.backgroundColor = "#00ff00";
-                disconnectButton.style.display = "none";
-                console.log("Wallet disconnected");
-            }
-
-            await initWeb3Modal();
-            walletButton.addEventListener("click", connectWallet);
-            disconnectButton.addEventListener("click", disconnectWallet);
         });
     </script>
 </body>
