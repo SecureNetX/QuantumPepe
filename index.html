@@ -7,7 +7,7 @@
   <!-- Externe CSS-Datei (falls vorhanden) -->
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Fallback-/Inline-CSS */
+    /* Fallback- bzw. Inline-CSS */
     body {
       background-color: #004d00;
       color: #ffffff;
@@ -243,10 +243,10 @@
   
   <!-- Externe Skripte -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Web3Modal laden (über jsDelivr) -->
-  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
-  <!-- WalletConnect Provider -->
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <!-- Web3Modal V2 (verwende @web3modal/html) -->
+  <script src="https://cdn.jsdelivr.net/npm/@web3modal/html@2/dist/index.iife.js"></script>
+  <!-- WalletConnect Provider V2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@2/dist/umd/index.min.js"></script>
   <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   
@@ -267,69 +267,49 @@
       
       // Mapping der unterstützten Netzwerke zu den Contract-Adressen
       const contractAddresses = {
-        // Ethereum Mainnet (Chain ID: 1)
-        1: "0xYourEthereumContractAddress",
-        // Polygon Mainnet (Chain ID: 137)
-        137: "0xYourPolygonContractAddress",
-        // Binance Smart Chain Mainnet (Chain ID: 56)
-        56: "0xYourBSCContractAddress"
+        1: "0xYourEthereumContractAddress",   // Ethereum Mainnet
+        137: "0xYourPolygonContractAddress",    // Polygon (Matic)
+        56: "0xYourBSCContractAddress"            // Binance Smart Chain
       };
       
-      // Prüfe, ob WalletConnectProvider als .default verfügbar ist
-      const WCProvider = (WalletConnectProvider && WalletConnectProvider.default)
-                          ? WalletConnectProvider.default
-                          : WalletConnectProvider;
-      
-      // Konfiguration der Provider-Optionen für Web3Modal (mit Infura-ID)
-      const providerOptions = {
-        walletconnect: {
-          package: WCProvider,
-          options: {
-            infuraId: "ae19524c28104cafb33fe96211b9376e"
-          }
-        }
-        // Weitere Anbieter (z. B. Coinbase Wallet) können hier hinzugefügt werden.
+      // Konfiguriere Web3Modal V2 mit WalletConnect V2
+      const web3ModalConfig = {
+        projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Dein WalletConnect V2 Project ID
+        themeMode: "dark",
+        defaultChain: 1,
+        mobileWallets: [
+          { name: "MetaMask", deepLink: "metamask://", id: "metamask" },
+          { name: "Trust Wallet", deepLink: "trust://", id: "trust" },
+          { name: "Coinbase Wallet", deepLink: "cbwallet://", id: "coinbase" },
+          { name: "Rainbow", deepLink: "rainbow://", id: "rainbow" }
+        ]
       };
       
-      console.log("Web3Modal:", Web3Modal);
-      const Web3ModalConstructor = (Web3Modal && Web3Modal.default)
-                                    ? Web3Modal.default
-                                    : Web3Modal;
-      console.log("Using Web3Modal constructor:", Web3ModalConstructor);
+      // Erstelle eine Instanz von Web3Modal V2
+      const web3Modal = new window.Web3ModalHtml.Web3Modal(web3ModalConfig);
       
-      // Setze disableInjectedProvider, damit immer das Auswahl‑Modal erscheint,
-      // und füge qrcodeModalOptions zur mobilen Deep-Link-Unterstützung hinzu.
-      const web3Modal = new Web3ModalConstructor({
-        cacheProvider: false,
-        disableInjectedProvider: true,
-        providerOptions,
-        qrcodeModalOptions: {
-          mobileLinks: ["metamask", "trust", "coinbase", "rainbow"]
-        }
-      });
+      // Globale Variablen zur Speicherung des Verbindungsstatus
+      let walletConnected = false;
+      let connectedProvider = null;
       
-      // Globale Variablen
-      let walletConnected = localStorage.getItem("walletConnected") === "true";
-      let connectedProvider = null; // Wird nach erfolgreicher Verbindung gesetzt
-      
-      // Funktion, um die Button-Anzeige zu aktualisieren
       function updateButtons() {
+        const connectBtn = document.querySelector(".wallet-button");
+        const disconnectBtn = document.querySelector(".disconnect-wallet");
         if (walletConnected) {
-          document.querySelector(".wallet-button").textContent = "Wallet Connected";
-          document.querySelector(".wallet-button").style.backgroundColor = "#009900";
-          document.querySelector(".disconnect-wallet").style.display = "block";
+          connectBtn.textContent = "Wallet Connected";
+          connectBtn.style.backgroundColor = "#009900";
+          disconnectBtn.style.display = "block";
         } else {
-          document.querySelector(".wallet-button").textContent = "Connect Wallet";
-          document.querySelector(".wallet-button").style.backgroundColor = "#00ff00";
-          document.querySelector(".disconnect-wallet").style.display = "none";
+          connectBtn.textContent = "Connect Wallet";
+          connectBtn.style.backgroundColor = "#00ff00";
+          disconnectBtn.style.display = "none";
         }
       }
       
       updateButtons();
       
-      // Event-Listener für den "Connect Wallet"-Button
-      const walletButton = document.querySelector(".wallet-button");
-      walletButton.addEventListener("click", async function () {
+      // Connect Wallet-Button
+      document.querySelector(".wallet-button").addEventListener("click", async function () {
         console.log("Wallet button clicked");
         try {
           console.log("Opening Web3Modal for wallet selection...");
@@ -341,27 +321,26 @@
           console.log("Connected accounts:", accounts);
           if (accounts.length > 0) {
             walletConnected = true;
-            localStorage.setItem("walletConnected", "true");
             updateButtons();
-            console.log("Connected account:", accounts[0]);
             alert("Wallet connected: " + accounts[0]);
           } else {
             alert("No account found. Please check your wallet.");
           }
         } catch (error) {
-          console.error("Error connecting wallet via Web3Modal:", error);
+          console.error("Error connecting wallet via Web3Modal V2:", error);
           alert("Failed to connect wallet. Please try again.");
         }
       });
       
-      // Event-Listener für den "Disconnect Wallet"-Button
-      const disconnectButton = document.querySelector(".disconnect-wallet");
-      disconnectButton.addEventListener("click", async function () {
-        if (web3Modal && web3Modal.clearCachedProvider) {
+      // Disconnect Wallet-Button
+      document.querySelector(".disconnect-wallet").addEventListener("click", async function () {
+        // Web3Modal V2 bietet derzeit keine explizite Disconnect-Methode,
+        // aber du kannst den Cache leeren und den Status zurücksetzen.
+        if (web3Modal.clearCachedProvider) {
           web3Modal.clearCachedProvider();
         }
-        localStorage.removeItem("walletConnected");
         walletConnected = false;
+        connectedProvider = null;
         updateButtons();
         alert("Wallet disconnected.");
       });
@@ -375,24 +354,20 @@
         try {
           const ethersProvider = new ethers.providers.Web3Provider(connectedProvider);
           const signer = ethersProvider.getSigner();
-          
           // Erhalte die aktuelle Netzwerkinformation
           const network = await ethersProvider.getNetwork();
           console.log("Current network:", network);
-          
-          // Hole das ausgewählte Netzwerk aus dem Dropdown
+          // Hole das im Dropdown ausgewählte Netzwerk
           const selectedChainId = document.getElementById("networkSelect").value;
           console.log("Selected network:", selectedChainId);
           
           // Falls das aktuell verbundene Netzwerk nicht dem gewünschten entspricht, versuche zu wechseln
           if (network.chainId.toString() !== selectedChainId) {
             try {
-              // Versuche, das Netzwerk zu wechseln (funktioniert bei MetaMask in der Regel)
               await window.ethereum.request({
                 method: "wallet_switchEthereumChain",
                 params: [{ chainId: "0x" + parseInt(selectedChainId).toString(16) }]
               });
-              // Aktualisiere die Netzwerkinformation
               const newNetwork = await ethersProvider.getNetwork();
               console.log("Switched network:", newNetwork);
               if (newNetwork.chainId.toString() !== selectedChainId) {
@@ -406,7 +381,7 @@
             }
           }
           
-          // Wähle die entsprechende Contract-Adresse anhand der ausgewählten Chain-ID
+          // Wähle die entsprechende Contract-Adresse anhand des ausgewählten Netzwerks
           const contractAddress = contractAddresses[selectedChainId];
           if (!contractAddress) {
             alert("Unsupported network. Please choose Ethereum, Polygon, or Binance Smart Chain.");
@@ -436,11 +411,10 @@
         }
       }
       
-      // Event-Listener für den "Buy Tokens"-Button
-      const buyTokensButton = document.getElementById("buyTokensButton");
-      buyTokensButton.addEventListener("click", purchaseTokens);
+      // Buy Tokens-Button
+      document.getElementById("buyTokensButton").addEventListener("click", purchaseTokens);
       
-      // ★ Platzhalter: Weitere Logik für den Presale kann hier ergänzt werden.
+      // ★ Weitere Logik für den Presale kann hier ergänzt werden.
     });
   </script>
 </body>
