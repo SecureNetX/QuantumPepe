@@ -214,7 +214,7 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      // Chart initialisieren
+      // Tokenomics-Diagramm initialisieren
       const ctx = document.getElementById("tokenomicsChart").getContext("2d");
       new Chart(ctx, {
         type: "doughnut",
@@ -238,7 +238,72 @@
         // Weitere Anbieter (z. B. Coinbase Wallet) können hier hinzugefügt werden.
       };
 
-      // Web3Modal initialisieren
-      const web3Modal = new window.Web3Modal.default({
+      // Web3Modal initialisieren – ACHTUNG: hier ohne window.Web3Modal.default!
+      const web3Modal = new Web3Modal({
         cacheProvider: false,
-     
+        providerOptions
+      });
+
+      const walletButton = document.querySelector(".wallet-button");
+      const disconnectButton = document.querySelector(".disconnect-wallet");
+      let walletConnected = localStorage.getItem("walletConnected") === "true";
+
+      function updateButtons() {
+        if (walletConnected) {
+          walletButton.textContent = "Wallet Connected";
+          walletButton.style.backgroundColor = "#009900";
+          disconnectButton.style.display = "block";
+        } else {
+          walletButton.textContent = "Connect Wallet";
+          walletButton.style.backgroundColor = "#00ff00";
+          disconnectButton.style.display = "none";
+        }
+      }
+
+      updateButtons();
+
+      walletButton.addEventListener("click", async function () {
+        if (!walletConnected) {
+          try {
+            // Öffnet das Web3Modal zur Wallet-Auswahl
+            const provider = await web3Modal.connect();
+            // Erstelle einen Ethers-Provider
+            const ethersProvider = new ethers.providers.Web3Provider(provider);
+            // Hole die verbundenen Konten
+            const accounts = await ethersProvider.listAccounts();
+            if (accounts.length > 0) {
+              walletConnected = true;
+              localStorage.setItem("walletConnected", "true");
+              updateButtons();
+              console.log("Verbundenes Konto:", accounts[0]);
+              alert("Wallet verbunden: " + accounts[0]);
+
+              // ★ Hier kannst du später deine Logik einfügen, um den Presale zu starten.
+            } else {
+              alert("Kein Konto gefunden. Bitte überprüfe deine Wallet.");
+            }
+          } catch (error) {
+            console.error("Wallet-Verbindung fehlgeschlagen:", error);
+            alert("Wallet-Verbindung fehlgeschlagen. Bitte versuche es erneut.");
+          }
+        }
+      });
+
+      disconnectButton.addEventListener("click", async function () {
+        if (web3Modal && web3Modal.clearCachedProvider) {
+          web3Modal.clearCachedProvider();
+        }
+        localStorage.removeItem("walletConnected");
+        walletConnected = false;
+        updateButtons();
+        alert("Wallet getrennt.");
+      });
+
+      // ★ Platzhalter-Funktion für den Token-Kauf (Presale)
+      // async function purchaseTokens(ethersProvider, account) {
+      //   // Hier schreibst du den Code, um mit deinem Smart Contract zu interagieren.
+      // }
+    });
+  </script>
+</body>
+</html>
