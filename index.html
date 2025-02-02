@@ -15,10 +15,30 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   
   <script>
+    // Prüfe, was unter window.Web3ModalHtml verfügbar ist
+    console.log("window.Web3ModalHtml:", window.Web3ModalHtml);
+
+    // Versuche, den Konstruktor zu ermitteln
+    let Web3ModalConstructor = null;
+    if (window.Web3ModalHtml) {
+      if (window.Web3ModalHtml.Web3Modal) {
+        Web3ModalConstructor = window.Web3ModalHtml.Web3Modal;
+      } else {
+        // Falls keine separate Eigenschaft existiert, könnte das Modul direkt exportiert werden
+        Web3ModalConstructor = window.Web3ModalHtml;
+      }
+    }
+
+    if (!Web3ModalConstructor) {
+      console.error("Web3Modal constructor not found!");
+    } else {
+      console.log("Using Web3Modal constructor:", Web3ModalConstructor);
+    }
+
     document.getElementById("connectBtn").addEventListener("click", async () => {
       try {
-        // Verwende den globalen Namen "Web3ModalHtml.Web3Modal" (nicht window.Web3Modal)
-        const web3Modal = new window.Web3ModalHtml.Web3Modal({
+        // Erstelle eine Instanz von Web3Modal V2 mit deiner Konfiguration
+        const web3Modal = new Web3ModalConstructor({
           projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Dein WalletConnect V2 Project ID
           themeMode: "dark",
           defaultChain: 1,
@@ -29,8 +49,12 @@
             { name: "Rainbow", deepLink: "rainbow://", id: "rainbow" }
           ]
         });
+        
+        // Öffne das Modal, um eine Wallet auszuwählen
         const provider = await web3Modal.connect();
         console.log("Provider:", provider);
+        
+        // Erzeuge einen ethers.js Provider und liste die Konten auf
         const ethersProvider = new ethers.providers.Web3Provider(provider);
         const accounts = await ethersProvider.listAccounts();
         alert("Connected: " + accounts[0]);
