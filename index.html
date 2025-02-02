@@ -109,25 +109,29 @@
         font-size: 1.1em;
     }
 
-    .tokenomics {
-        background: rgba(0, 0, 0, 0.6);
-        padding: 30px;
-        border-radius: 15px;
-        margin: 20px auto;
-        width: 80%;
-        max-width: 400px;
-        text-align: center;
-        color: #ffffff;
-    }
+    .tokenomics-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 600px;
+    margin: auto;
+}
 
-    .tokenomics h2 {
-        text-shadow: 0 0 10px #00ff00;
-    }
+.tokenomics-info {
+    text-align: left;
+    font-size: 1.1em;
+}
 
-    .tokenomics-chart {
-        width: 80%;
-        max-width: 400px;
-    }
+.tokenomics-info ul {
+    list-style: none;
+    padding: 0;
+}
+
+.tokenomics-chart {
+    width: 300px;
+    height: 300px;
+}
+
 
     footer {
         margin-top: 20px;
@@ -187,11 +191,23 @@
         </section>
 
         <section class="tokenomics">
-            <h2>QuantumPepe Tokenomics</h2>
-            <div class="tokenomics-chart">
-                <canvas id="tokenomicsChart"></canvas>
-            </div>
-        </section>
+    <h2>QuantumPepe Tokenomics</h2>
+    <div class="tokenomics-content">
+        <div class="tokenomics-info">
+            <ul>
+                <li>✔️ <strong>40%</strong> Liquidity Pool</li>
+                <li>✔️ <strong>35%</strong> Presale</li>
+                <li>✔️ <strong>10%</strong> Reserve</li>
+                <li>✔️ <strong>10%</strong> Team</li>
+                <li>✔️ <strong>5%</strong> Marketing</li>
+            </ul>
+        </div>
+        <div class="tokenomics-chart">
+            <canvas id="tokenomicsChart"></canvas>
+        </div>
+    </div>
+</section>
+
     </main>
 
     <footer>
