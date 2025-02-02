@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantumPepe Presale</title>
+  <!-- Externe CSS-Datei (falls vorhanden) -->
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Fallback-/Inline-CSS */
+    /* Fallback- oder Inline-CSS, falls styles.css nicht gefunden wird */
     body {
       background-color: #004d00;
       color: #ffffff;
@@ -126,6 +127,26 @@
       width: 300px;
       height: 300px;
     }
+    /* Bereich für den Token-Kauf */
+    #purchaseSection {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 50%;
+      text-align: center;
+    }
+    #purchaseSection input {
+      font-size: 1em;
+      padding: 8px;
+      margin-right: 10px;
+      width: 150px;
+    }
+    #purchaseSection button {
+      font-size: 1em;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
     footer {
       margin-top: 20px;
       padding: 10px;
@@ -182,6 +203,14 @@
       </div>
     </section>
     
+    <!-- Bereich für den Token-Kauf -->
+    <section id="purchaseSection">
+      <h2>Buy Tokens</h2>
+      <p>Enter the amount in ETH to spend:</p>
+      <input type="text" id="buyAmount" placeholder="Amount in ETH" />
+      <button id="buyTokensButton">Buy Tokens</button>
+    </section>
+    
     <section class="tokenomics">
       <h2>QuantumPepe Tokenomics</h2>
       <div class="tokenomics-content">
@@ -207,8 +236,11 @@
   
   <!-- Externe Skripte -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Web3Modal laden (über jsDelivr) -->
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
+  <!-- WalletConnect Provider -->
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   
   <script>
@@ -231,7 +263,7 @@
                           ? WalletConnectProvider.default
                           : WalletConnectProvider;
       
-      // Konfiguration der Provider-Optionen für Web3Modal (mit deiner Infura-ID)
+      // Konfiguration der Provider-Optionen für Web3Modal (mit Infura-ID)
       const providerOptions = {
         walletconnect: {
           package: WCProvider,
@@ -239,47 +271,56 @@
             infuraId: "ae19524c28104cafb33fe96211b9376e"
           }
         }
-        // Hier können weitere Anbieter hinzugefügt werden.
+        // Weitere Anbieter (z. B. Coinbase Wallet) können hier hinzugefügt werden.
       };
       
       console.log("Web3Modal:", Web3Modal);
+      // Verwende den korrekten Konstruktor, falls .default existiert
       const Web3ModalConstructor = (Web3Modal && Web3Modal.default)
                                     ? Web3Modal.default
                                     : Web3Modal;
       console.log("Using Web3Modal constructor:", Web3ModalConstructor);
       
-      // Initialisiere Web3Modal (ohne disableInjectedProvider, damit alle Optionen angezeigt werden)
+      // Setze disableInjectedProvider, damit immer das Auswahl‑Modal erscheint,
+      // und füge qrcodeModalOptions hinzu, um mobile Deep-Link-Unterstützung zu aktivieren.
       const web3Modal = new Web3ModalConstructor({
         cacheProvider: false,
-        providerOptions
+        disableInjectedProvider: true,
+        providerOptions,
+        qrcodeModalOptions: {
+          mobileLinks: ["metamask", "trust", "coinbase", "rainbow"]
+        }
       });
       
-      // Hole die Buttons
-      const walletButton = document.querySelector(".wallet-button");
-      const disconnectButton = document.querySelector(".disconnect-wallet");
+      // Globale Variablen
       let walletConnected = localStorage.getItem("walletConnected") === "true";
+      // Hier speichern wir den aktuell verbundenen Provider, der später für Transaktionen genutzt wird.
+      let connectedProvider = null;
       
+      // Funktion, um die Button-Anzeige zu aktualisieren
       function updateButtons() {
         if (walletConnected) {
-          walletButton.textContent = "Wallet Connected";
-          walletButton.style.backgroundColor = "#009900";
-          disconnectButton.style.display = "block";
+          document.querySelector(".wallet-button").textContent = "Wallet Connected";
+          document.querySelector(".wallet-button").style.backgroundColor = "#009900";
+          document.querySelector(".disconnect-wallet").style.display = "block";
         } else {
-          walletButton.textContent = "Connect Wallet";
-          walletButton.style.backgroundColor = "#00ff00";
-          disconnectButton.style.display = "none";
+          document.querySelector(".wallet-button").textContent = "Connect Wallet";
+          document.querySelector(".wallet-button").style.backgroundColor = "#00ff00";
+          document.querySelector(".disconnect-wallet").style.display = "none";
         }
       }
       
       updateButtons();
       
       // Event-Listener für den "Connect Wallet"-Button
+      const walletButton = document.querySelector(".wallet-button");
       walletButton.addEventListener("click", async function () {
         console.log("Wallet button clicked");
         try {
           console.log("Opening Web3Modal for wallet selection...");
           const provider = await web3Modal.connect();
           console.log("Provider returned:", provider);
+          connectedProvider = provider; // Speichere den Provider global
           const ethersProvider = new ethers.providers.Web3Provider(provider);
           const accounts = await ethersProvider.listAccounts();
           console.log("Connected accounts:", accounts);
@@ -299,6 +340,7 @@
       });
       
       // Event-Listener für den "Disconnect Wallet"-Button
+      const disconnectButton = document.querySelector(".disconnect-wallet");
       disconnectButton.addEventListener("click", async function () {
         if (web3Modal && web3Modal.clearCachedProvider) {
           web3Modal.clearCachedProvider();
@@ -309,10 +351,44 @@
         alert("Wallet disconnected.");
       });
       
-      // ★ Platzhalter: Hier kannst du später deine Logik für den Tokenkauf (Presale) einfügen.
-      // async function purchaseTokens(ethersProvider, account) { ... }
+      // Funktion, um Token zu kaufen
+      async function purchaseTokens() {
+        if (!walletConnected || !connectedProvider) {
+          alert("Please connect your wallet first!");
+          return;
+        }
+        try {
+          const ethersProvider = new ethers.providers.Web3Provider(connectedProvider);
+          const signer = ethersProvider.getSigner();
+          // Ersetze diese Werte mit deiner tatsächlichen Contract-Adresse und ABI
+          const contractAddress = "0xYourContractAddress"; // <-- Hier deine Contract-Adresse einfügen
+          const contractABI = [
+            // <-- Hier dein Contract ABI einfügen, z. B.:
+            // "function buyTokens() public payable",
+          ];
+          const contract = new ethers.Contract(contractAddress, contractABI, signer);
+          const amount = document.getElementById("buyAmount").value;
+          if (!amount || isNaN(amount)) {
+            alert("Please enter a valid amount in ETH.");
+            return;
+          }
+          // Sende die Transaktion an den Smart Contract (Passe ggf. die Methode und Parameter an)
+          const tx = await contract.buyTokens({ value: ethers.utils.parseEther(amount) });
+          alert("Transaction sent. Waiting for confirmation...");
+          await tx.wait();
+          alert("Tokens purchased successfully!");
+        } catch (error) {
+          console.error("Error purchasing tokens:", error);
+          alert("Token purchase failed. See console for details.");
+        }
+      }
+      
+      // Event-Listener für den "Buy Tokens"-Button
+      const buyTokensButton = document.getElementById("buyTokensButton");
+      buyTokensButton.addEventListener("click", purchaseTokens);
+      
+      // ★ Platzhalter: Hier kannst du später weitere Logik für den Presale hinzufügen.
     });
   </script>
 </body>
 </html>
-
