@@ -221,32 +221,62 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-        var ctx = document.getElementById("tokenomicsChart").getContext("2d");
-        new Chart(ctx, {
-            type: "doughnut",
-            data: {
-                labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
-                datasets: [{ data: [40, 35, 10, 10, 5], backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"] }]
+    <script>
+document.addEventListener("DOMContentLoaded", async function () {
+    const providerOptions = {
+        walletconnect: {
+            package: window.WalletConnectProvider.default,
+            options: {
+                infuraId: "YOUR_INFURA_ID"
             }
-        });
-
-        const providerOptions = {
-            walletconnect: {
-                package: WalletConnectProvider.default,
-                options: { rpc: { 1: "https://mainnet.infura.io/v3/YOUR_INFURA_ID" } }
-            },
-            coinbasewallet: {
-                package: CoinbaseWalletSDK,
-                options: { appName: "QuantumPepe" }
+        },
+        coinbasewallet: {
+            package: window.CoinbaseWalletSDK,
+            options: {
+                appName: "QuantumPepe"
             }
-        };
+        }
+    };
 
-        const web3Modal = new Web3Modal.default({ cacheProvider: false, providerOptions });
+    const web3Modal = new Web3Modal.default({
+        cacheProvider: false,
+        providerOptions
+    });
 
-        let provider;
-        const walletButton = document.querySelector(".wallet-button");
-        const disconnectButton = document.querySelector(".disconnect-wallet");
+    const walletButton = document.querySelector(".wallet-button");
+    const disconnectButton = document.querySelector(".disconnect-wallet");
+    let provider = null;
+
+    async function connectWallet() {
+        try {
+            provider = await web3Modal.connect();
+            console.log("Wallet connected:", provider);
+            walletButton.textContent = "Wallet Connected";
+            walletButton.style.backgroundColor = "#009900";
+            disconnectButton.style.display = "block";
+        } catch (error) {
+            console.error("Wallet connection failed:", error);
+        }
+    }
+
+    function disconnectWallet() {
+        provider = null;
+        web3Modal.clearCachedProvider();
+        walletButton.textContent = "Connect Wallet";
+        walletButton.style.backgroundColor = "#00ff00";
+        disconnectButton.style.display = "none";
+        console.log("Wallet disconnected");
+    }
+
+    walletButton.addEventListener("click", connectWallet);
+    disconnectButton.addEventListener("click", disconnectWallet);
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
+<script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers"></script>
+
 
         walletButton.addEventListener("click", async function () {
             provider = await web3Modal.connect();
