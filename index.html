@@ -7,7 +7,7 @@
   <!-- Externe CSS-Datei (falls vorhanden) -->
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Fallback- bzw. Inline-CSS */
+    /* Fallback-/Inline-CSS */
     body {
       background-color: #004d00;
       color: #ffffff;
@@ -143,6 +143,11 @@
       margin-right: 10px;
       width: 150px;
     }
+    /* Hier zeigen wir das Währungskürzel neben dem Amount-Feld an */
+    #currencyLabel {
+      font-size: 1em;
+      font-weight: bold;
+    }
     #purchaseSection button {
       font-size: 1em;
       padding: 8px 16px;
@@ -207,14 +212,17 @@
     <!-- Bereich für den Token-Kauf -->
     <section id="purchaseSection">
       <h2>Buy Tokens</h2>
-      <p>Enter the amount in ETH to spend:</p>
-      <input type="text" id="buyAmount" placeholder="Amount in ETH" />
+      <p>Enter the amount to spend:</p>
+      <input type="text" id="buyAmount" placeholder="Amount" />
+      <span id="currencyLabel">ETH</span>
+      <br/><br/>
       <p>Select Network:</p>
       <select id="networkSelect">
-        <option value="1">Ethereum Mainnet</option>
-        <option value="137">Polygon (Matic)</option>
-        <option value="56">Binance Smart Chain</option>
+        <option value="1" data-unit="ETH">Ethereum Mainnet</option>
+        <option value="137" data-unit="MATIC">Polygon (Matic)</option>
+        <option value="56" data-unit="BNB">Binance Smart Chain</option>
       </select>
+      <br/><br/>
       <button id="buyTokensButton">Buy Tokens</button>
     </section>
     
@@ -243,7 +251,7 @@
   
   <!-- Externe Skripte -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Web3Modal V2 (verwende @web3modal/html) -->
+  <!-- Web3Modal V2 (über @web3modal/html) -->
   <script src="https://cdn.jsdelivr.net/npm/@web3modal/html@2/dist/index.iife.js"></script>
   <!-- WalletConnect Provider V2 -->
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@2/dist/umd/index.min.js"></script>
@@ -272,7 +280,7 @@
         56: "0xYourBSCContractAddress"            // Binance Smart Chain
       };
       
-      // Konfiguriere Web3Modal V2 mit WalletConnect V2
+      // Konfiguriere Web3Modal V2 (verwende dein WalletConnect Project ID)
       const web3ModalConfig = {
         projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Dein WalletConnect V2 Project ID
         themeMode: "dark",
@@ -288,10 +296,23 @@
       // Erstelle eine Instanz von Web3Modal V2
       const web3Modal = new window.Web3ModalHtml.Web3Modal(web3ModalConfig);
       
-      // Globale Variablen zur Speicherung des Verbindungsstatus
+      // Globale Variablen
       let walletConnected = false;
-      let connectedProvider = null;
+      let connectedProvider = null; // Wird nach erfolgreicher Verbindung gesetzt
       
+      // Funktion, um die Währungseinheit im Amount-Feld anzupassen
+      function updateCurrencyLabel() {
+        const networkSelect = document.getElementById("networkSelect");
+        const selectedOption = networkSelect.options[networkSelect.selectedIndex];
+        const unit = selectedOption.getAttribute("data-unit") || "ETH";
+        document.getElementById("currencyLabel").innerText = unit;
+      }
+      
+      // Beim Laden und bei Änderung des Dropdowns aktualisieren
+      updateCurrencyLabel();
+      document.getElementById("networkSelect").addEventListener("change", updateCurrencyLabel);
+      
+      // Funktion, um die Button-Anzeige zu aktualisieren
       function updateButtons() {
         const connectBtn = document.querySelector(".wallet-button");
         const disconnectBtn = document.querySelector(".disconnect-wallet");
@@ -308,7 +329,7 @@
       
       updateButtons();
       
-      // Connect Wallet-Button
+      // Event-Listener für den "Connect Wallet"-Button
       document.querySelector(".wallet-button").addEventListener("click", async function () {
         console.log("Wallet button clicked");
         try {
@@ -322,6 +343,7 @@
           if (accounts.length > 0) {
             walletConnected = true;
             updateButtons();
+            console.log("Connected account:", accounts[0]);
             alert("Wallet connected: " + accounts[0]);
           } else {
             alert("No account found. Please check your wallet.");
@@ -332,10 +354,10 @@
         }
       });
       
-      // Disconnect Wallet-Button
+      // Event-Listener für den "Disconnect Wallet"-Button
       document.querySelector(".disconnect-wallet").addEventListener("click", async function () {
         // Web3Modal V2 bietet derzeit keine explizite Disconnect-Methode,
-        // aber du kannst den Cache leeren und den Status zurücksetzen.
+        // aber wir können den Cache leeren und den Status zurücksetzen.
         if (web3Modal.clearCachedProvider) {
           web3Modal.clearCachedProvider();
         }
@@ -354,14 +376,17 @@
         try {
           const ethersProvider = new ethers.providers.Web3Provider(connectedProvider);
           const signer = ethersProvider.getSigner();
+          
           // Erhalte die aktuelle Netzwerkinformation
           const network = await ethersProvider.getNetwork();
           console.log("Current network:", network);
+          
           // Hole das im Dropdown ausgewählte Netzwerk
           const selectedChainId = document.getElementById("networkSelect").value;
           console.log("Selected network:", selectedChainId);
           
-          // Falls das aktuell verbundene Netzwerk nicht dem gewünschten entspricht, versuche zu wechseln
+          // Falls das aktuell verbundene Netzwerk nicht dem gewünschten entspricht,
+          // versuche, das Netzwerk zu wechseln (dies funktioniert in der Regel in Desktop-Browsern mit MetaMask)
           if (network.chainId.toString() !== selectedChainId) {
             try {
               await window.ethereum.request({
@@ -396,7 +421,7 @@
           const contract = new ethers.Contract(contractAddress, contractABI, signer);
           const amount = document.getElementById("buyAmount").value;
           if (!amount || isNaN(amount)) {
-            alert("Please enter a valid amount in ETH.");
+            alert("Please enter a valid amount.");
             return;
           }
           
@@ -411,7 +436,7 @@
         }
       }
       
-      // Buy Tokens-Button
+      // Event-Listener für den "Buy Tokens"-Button
       document.getElementById("buyTokensButton").addEventListener("click", purchaseTokens);
       
       // ★ Weitere Logik für den Presale kann hier ergänzt werden.
