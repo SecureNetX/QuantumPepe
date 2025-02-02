@@ -441,6 +441,83 @@
      
       // ★ Weitere Logik für den Presale kann hier ergänzt werden.
     });
+    </footer>
+
+  <!-- Hier fügst du den neuen Code ein, direkt vor dem schließenden </body>-Tag -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      console.log("Web3Modal V2 wird geladen...");
+
+      // Web3Modal V2 Konfiguration
+      const web3Modal = new window.Web3ModalHtml.Web3Modal({
+        projectId: "c1b3c575703c52649f0a69c9e6b3e836", // DEINE WALLETCONNECT PROJECT ID
+        themeMode: "dark",
+        defaultChain: 1, // Standardmäßig Ethereum Mainnet (1)
+        mobileWallets: [
+          { name: "MetaMask", deepLink: "metamask://", id: "metamask" },
+          { name: "Trust Wallet", deepLink: "trust://", id: "trust" },
+          { name: "Coinbase Wallet", deepLink: "cbwallet://", id: "coinbase" },
+          { name: "Uniswap Wallet", deepLink: "uniswap://", id: "uniswap" }
+        ]
+      });
+
+      let walletConnected = false;
+      let provider;
+
+      // Funktion zum Aktualisieren des Buttons nach Verbindung
+      function updateButtons() {
+        const connectBtn = document.querySelector(".wallet-button");
+        const disconnectBtn = document.querySelector(".disconnect-wallet");
+        if (walletConnected) {
+          connectBtn.textContent = "Wallet Connected";
+          connectBtn.style.backgroundColor = "#009900";
+          disconnectBtn.style.display = "block";
+        } else {
+          connectBtn.textContent = "Connect Wallet";
+          connectBtn.style.backgroundColor = "#00ff00";
+          disconnectBtn.style.display = "none";
+        }
+      }
+
+      updateButtons();
+
+      // Wallet verbinden
+      document.querySelector(".wallet-button").addEventListener("click", async function () {
+        try {
+          console.log("Öffne Web3Modal zur Wallet-Auswahl...");
+          provider = await web3Modal.connect();
+          console.log("Provider verbunden:", provider);
+
+          const ethersProvider = new ethers.providers.Web3Provider(provider);
+          const accounts = await ethersProvider.listAccounts();
+          console.log("Wallet-Adresse:", accounts[0]);
+
+          if (accounts.length > 0) {
+            walletConnected = true;
+            updateButtons();
+            alert("Wallet verbunden: " + accounts[0]);
+          }
+        } catch (error) {
+          console.error("Fehler bei der Wallet-Verbindung:", error);
+          alert("Verbindung fehlgeschlagen! Prüfe die Konsole für Details.");
+        }
+      });
+
+      // Wallet trennen
+      document.querySelector(".disconnect-wallet").addEventListener("click", async function () {
+        if (web3Modal.clearCachedProvider) {
+          web3Modal.clearCachedProvider();
+        }
+        walletConnected = false;
+        provider = null;
+        updateButtons();
+        alert("Wallet getrennt.");
+      });
+    });
+  </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>
