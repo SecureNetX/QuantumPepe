@@ -136,7 +136,8 @@
       width: 50%;
       text-align: center;
     }
-    #purchaseSection input {
+    #purchaseSection input,
+    #purchaseSection select {
       font-size: 1em;
       padding: 8px;
       margin-right: 10px;
@@ -208,6 +209,12 @@
       <h2>Buy Tokens</h2>
       <p>Enter the amount in ETH to spend:</p>
       <input type="text" id="buyAmount" placeholder="Amount in ETH" />
+      <p>Select Network:</p>
+      <select id="networkSelect">
+        <option value="1">Ethereum Mainnet</option>
+        <option value="137">Polygon (Matic)</option>
+        <option value="56">Binance Smart Chain</option>
+      </select>
       <button id="buyTokensButton">Buy Tokens</button>
     </section>
     
@@ -258,7 +265,7 @@
         }
       });
       
-      // Mapping der unterstützten Chain-IDs zu den Contract-Adressen
+      // Mapping der unterstützten Netzwerke zu den Contract-Adressen
       const contractAddresses = {
         // Ethereum Mainnet (Chain ID: 1)
         1: "0xYourEthereumContractAddress",
@@ -368,25 +375,56 @@
         try {
           const ethersProvider = new ethers.providers.Web3Provider(connectedProvider);
           const signer = ethersProvider.getSigner();
-          // Erhalte die aktuelle Netzwerkinformation (Chain ID)
+          
+          // Erhalte die aktuelle Netzwerkinformation
           const network = await ethersProvider.getNetwork();
           console.log("Current network:", network);
-          // Wähle die entsprechende Contract-Adresse anhand der Chain ID
-          const contractAddress = contractAddresses[network.chainId];
+          
+          // Hole das ausgewählte Netzwerk aus dem Dropdown
+          const selectedChainId = document.getElementById("networkSelect").value;
+          console.log("Selected network:", selectedChainId);
+          
+          // Falls das aktuell verbundene Netzwerk nicht dem gewünschten entspricht, versuche zu wechseln
+          if (network.chainId.toString() !== selectedChainId) {
+            try {
+              // Versuche, das Netzwerk zu wechseln (funktioniert bei MetaMask in der Regel)
+              await window.ethereum.request({
+                method: "wallet_switchEthereumChain",
+                params: [{ chainId: "0x" + parseInt(selectedChainId).toString(16) }]
+              });
+              // Aktualisiere die Netzwerkinformation
+              const newNetwork = await ethersProvider.getNetwork();
+              console.log("Switched network:", newNetwork);
+              if (newNetwork.chainId.toString() !== selectedChainId) {
+                alert("Network switch failed. Please switch manually in your wallet.");
+                return;
+              }
+            } catch (switchError) {
+              console.error("Error switching network:", switchError);
+              alert("Please switch to the selected network in your wallet and try again.");
+              return;
+            }
+          }
+          
+          // Wähle die entsprechende Contract-Adresse anhand der ausgewählten Chain-ID
+          const contractAddress = contractAddresses[selectedChainId];
           if (!contractAddress) {
-            alert("Unsupported network. Please switch to Ethereum, Polygon, or Binance Smart Chain.");
+            alert("Unsupported network. Please choose Ethereum, Polygon, or Binance Smart Chain.");
             return;
           }
-          // Ersetze hier mit deinem tatsächlichen Contract ABI
+          
+          // Ersetze diesen ABI-Platzhalter mit dem tatsächlichen ABI deines Presale-Contracts
           const contractABI = [
             // Beispiel: "function buyTokens() public payable"
           ];
+          
           const contract = new ethers.Contract(contractAddress, contractABI, signer);
           const amount = document.getElementById("buyAmount").value;
           if (!amount || isNaN(amount)) {
             alert("Please enter a valid amount in ETH.");
             return;
           }
+          
           // Sende die Transaktion an den Smart Contract
           const tx = await contract.buyTokens({ value: ethers.utils.parseEther(amount) });
           alert("Transaction sent. Waiting for confirmation...");
