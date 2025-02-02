@@ -243,7 +243,7 @@
             infuraId: "ae19524c28104cafb33fe96211b9376e"
           }
         }
-        // Weitere Anbieter (z.B. Coinbase Wallet) können hier hinzugefügt werden.
+        // Hier können weitere Anbieter (z. B. Coinbase Wallet) hinzugefügt werden.
       };
       
       console.log("Web3Modal:", Web3Modal);
@@ -253,9 +253,10 @@
                                     : Web3Modal;
       console.log("Using Web3Modal constructor:", Web3ModalConstructor);
       
-      // Initialisiere Web3Modal
+      // WICHTIG: Setze disableInjectedProvider auf true, damit der Nutzer immer die Wallet-Auswahl sieht
       const web3Modal = new Web3ModalConstructor({
         cacheProvider: false,
+        disableInjectedProvider: true, // Erzwingt die Anzeige des Wallet-Auswahlmodals
         providerOptions
       });
       
@@ -282,31 +283,8 @@
       // Event-Listener für den "Connect Wallet"-Button
       walletButton.addEventListener("click", async function () {
         console.log("Wallet button clicked");
-        // Versuche zuerst, MetaMask direkt über window.ethereum zu nutzen
-        if (window.ethereum) {
-          try {
-            console.log("Using native MetaMask (window.ethereum)");
-            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-            if (accounts.length > 0) {
-              walletConnected = true;
-              localStorage.setItem("walletConnected", "true");
-              updateButtons();
-              console.log("Connected account:", accounts[0]);
-              alert("Wallet connected: " + accounts[0]);
-              return; // Erfolgreich verbunden – kein Fallback nötig
-            } else {
-              alert("No account found. Please check your wallet.");
-            }
-          } catch (error) {
-            console.error("Error connecting via MetaMask:", error);
-            alert("Failed to connect via MetaMask. Please try again.");
-            return;
-          }
-        }
-        
-        // Fallback: Falls kein window.ethereum vorhanden ist, verwende Web3Modal (WalletConnect)
         try {
-          console.log("No window.ethereum found, opening Web3Modal...");
+          console.log("Opening Web3Modal for wallet selection...");
           const provider = await web3Modal.connect();
           console.log("Provider returned:", provider);
           const ethersProvider = new ethers.providers.Web3Provider(provider);
