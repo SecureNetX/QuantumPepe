@@ -110,28 +110,27 @@
     }
 
     .tokenomics-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 600px;
-    margin: auto;
-}
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 600px;
+        margin: auto;
+    }
 
-.tokenomics-info {
-    text-align: left;
-    font-size: 1.1em;
-}
+    .tokenomics-info {
+        text-align: left;
+        font-size: 1.1em;
+    }
 
-.tokenomics-info ul {
-    list-style: none;
-    padding: 0;
-}
+    .tokenomics-info ul {
+        list-style: none;
+        padding: 0;
+    }
 
-.tokenomics-chart {
-    width: 300px;
-    height: 300px;
-}
-
+    .tokenomics-chart {
+        width: 300px;
+        height: 300px;
+    }
 
     footer {
         margin-top: 20px;
@@ -191,22 +190,22 @@
         </section>
 
         <section class="tokenomics">
-    <h2>QuantumPepe Tokenomics</h2>
-    <div class="tokenomics-content">
-        <div class="tokenomics-info">
-            <ul>
-                <li>✔️ <strong>40%</strong> Liquidity Pool</li>
-                <li>✔️ <strong>35%</strong> Presale</li>
-                <li>✔️ <strong>10%</strong> Reserve</li>
-                <li>✔️ <strong>10%</strong> Team</li>
-                <li>✔️ <strong>5%</strong> Marketing</li>
-            </ul>
-        </div>
-        <div class="tokenomics-chart">
-            <canvas id="tokenomicsChart"></canvas>
-        </div>
-    </div>
-</section>
+            <h2>QuantumPepe Tokenomics</h2>
+            <div class="tokenomics-content">
+                <div class="tokenomics-info">
+                    <ul>
+                        <li>✔️ <strong>40%</strong> Liquidity Pool</li>
+                        <li>✔️ <strong>35%</strong> Presale</li>
+                        <li>✔️ <strong>10%</strong> Reserve</li>
+                        <li>✔️ <strong>10%</strong> Team</li>
+                        <li>✔️ <strong>5%</strong> Marketing</li>
+                    </ul>
+                </div>
+                <div class="tokenomics-chart">
+                    <canvas id="tokenomicsChart"></canvas>
+                </div>
+            </div>
+        </section>
 
     </main>
 
@@ -221,76 +220,38 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers"></script>
 
 <script>
-    <script>
 document.addEventListener("DOMContentLoaded", async function () {
     const providerOptions = {
         walletconnect: {
-            package: window.WalletConnectProvider.default,
-            options: {
-                infuraId: "YOUR_INFURA_ID"
-            }
+            package: WalletConnectProvider.default,
+            options: { infuraId: "YOUR_INFURA_ID" }
         },
         coinbasewallet: {
-            package: window.CoinbaseWalletSDK,
-            options: {
-                appName: "QuantumPepe"
-            }
+            package: CoinbaseWalletSDK,
+            options: { appName: "QuantumPepe" }
         }
     };
 
-    const web3Modal = new Web3Modal.default({
+    const web3Modal = new Web3Modal({
         cacheProvider: false,
         providerOptions
     });
 
     const walletButton = document.querySelector(".wallet-button");
     const disconnectButton = document.querySelector(".disconnect-wallet");
-    let provider = null;
 
-    async function connectWallet() {
-        try {
-            provider = await web3Modal.connect();
-            console.log("Wallet connected:", provider);
-            walletButton.textContent = "Wallet Connected";
-            walletButton.style.backgroundColor = "#009900";
-            disconnectButton.style.display = "block";
-        } catch (error) {
-            console.error("Wallet connection failed:", error);
-        }
-    }
+    walletButton.addEventListener("click", async function () {
+        const provider = await web3Modal.connect();
+        walletButton.textContent = "Wallet Connected";
+        disconnectButton.style.display = "block";
+    });
 
-    function disconnectWallet() {
-        provider = null;
+    disconnectButton.addEventListener("click", function () {
         web3Modal.clearCachedProvider();
         walletButton.textContent = "Connect Wallet";
-        walletButton.style.backgroundColor = "#00ff00";
         disconnectButton.style.display = "none";
-        console.log("Wallet disconnected");
-    }
-
-    walletButton.addEventListener("click", connectWallet);
-    disconnectButton.addEventListener("click", disconnectWallet);
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
-<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
-<script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
-<script src="https://cdn.jsdelivr.net/npm/ethers"></script>
-
-
-        walletButton.addEventListener("click", async function () {
-            provider = await web3Modal.connect();
-            walletButton.textContent = "Wallet Connected";
-            disconnectButton.style.display = "block";
-        });
-
-        disconnectButton.addEventListener("click", function () {
-            web3Modal.clearCachedProvider();
-            provider = null;
-            walletButton.textContent = "Connect Wallet";
-            disconnectButton.style.display = "none";
-        });
     });
+});
 </script>
 
 </body>
