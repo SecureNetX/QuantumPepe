@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -215,7 +215,7 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       // Chart initialisieren
-      var ctx = document.getElementById("tokenomicsChart").getContext("2d");
+      const ctx = document.getElementById("tokenomicsChart").getContext("2d");
       new Chart(ctx, {
         type: "doughnut",
         data: {
@@ -230,12 +230,12 @@
       // Konfiguration der Provider-Optionen für Web3Modal
       const providerOptions = {
         walletconnect: {
-          package: WalletConnectProvider, // WalletConnect als Package
+          package: WalletConnectProvider,
           options: {
-            infuraId: "YOUR_INFURA_ID" // Ersetze "YOUR_INFURA_ID" mit deiner Infura Project ID
+            infuraId: "YOUR_INFURA_ID" // Ersetze dies mit deiner echten Infura Project ID
           }
         }
-        // Weitere Anbieter (z. B. Coinbase Wallet) können hier hinzugefügt werden.
+        // Weitere Anbieter (z.B. Coinbase Wallet) können hier hinzugefügt werden
       };
 
       // Web3Modal initialisieren
@@ -246,7 +246,6 @@
 
       const walletButton = document.querySelector(".wallet-button");
       const disconnectButton = document.querySelector(".disconnect-wallet");
-
       let walletConnected = localStorage.getItem("walletConnected") === "true";
 
       function updateButtons() {
@@ -266,11 +265,11 @@
       walletButton.addEventListener("click", async function () {
         if (!walletConnected) {
           try {
-            // Öffnet das Web3Modal, sodass der Nutzer einen Anbieter auswählen kann
+            // Öffnet das Web3Modal zur Wallet-Auswahl
             const provider = await web3Modal.connect();
-            // Erzeugt einen Ethers-Provider
+            // Erstelle einen Ethers-Provider
             const ethersProvider = new ethers.providers.Web3Provider(provider);
-            // Ruft die verbundenen Konten ab
+            // Hole die verbundenen Konten
             const accounts = await ethersProvider.listAccounts();
             if (accounts.length > 0) {
               walletConnected = true;
@@ -278,6 +277,10 @@
               updateButtons();
               console.log("Verbundenes Konto:", accounts[0]);
               alert("Wallet verbunden: " + accounts[0]);
+
+              // ★ Hier kannst du später deine Logik einfügen, um den Presale zu starten.
+              // Beispiel: Aufruf einer Funktion, die einen Smart Contract mit dem verbundenen Konto interagieren lässt.
+              // await purchaseTokens(ethersProvider, accounts[0]);
             } else {
               alert("Kein Konto gefunden. Bitte überprüfe deine Wallet.");
             }
@@ -289,17 +292,27 @@
       });
 
       disconnectButton.addEventListener("click", async function () {
-        // Löscht den Cache des Providers (falls unterstützt)
         if (web3Modal && web3Modal.clearCachedProvider) {
           web3Modal.clearCachedProvider();
         }
         localStorage.removeItem("walletConnected");
         walletConnected = false;
         updateButtons();
+        alert("Wallet getrennt.");
       });
+
+      // ★ Platzhalter-Funktion für den Token-Kauf (Presale)
+      // async function purchaseTokens(ethersProvider, account) {
+      //   // Hier schreibst du den Code, um mit deinem Smart Contract zu interagieren,
+      //   // der die Token an den Nutzer sendet.
+      //   // Dies könnte z.B. ein Aufruf einer Methode wie:
+      //   // const contract = new ethers.Contract(contractAddress, contractABI, ethersProvider.getSigner());
+      //   // const tx = await contract.buyTokens({ value: ethers.utils.parseEther("0.1") });
+      //   // await tx.wait();
+      //   // alert("Token-Kauf erfolgreich!");
+      // }
     });
   </script>
-
 </body>
 </html>
 
