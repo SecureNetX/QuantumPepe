@@ -204,43 +204,72 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var ctx = document.getElementById("tokenomicsChart").getContext("2d");
-        new Chart(ctx, {
-            type: "doughnut",
-            data: {
-                labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
-                datasets: [{ data: [40, 35, 10, 10, 5], backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"] }]
-            }
-        });
-
-        const walletButton = document.querySelector(".wallet-button");
-        const disconnectButton = document.querySelector(".disconnect-wallet");
-
-        async function connectWallet() {
-            if (window.ethereum) {
-                try {
-                    await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
-                    await window.ethereum.request({ method: "eth_requestAccounts" });
-                    walletButton.textContent = "Wallet Connected";
-                    disconnectButton.style.display = "block";
-                } catch (error) {
-                    console.error("Wallet connection failed:", error);
+    document.addEventListener("DOMContentLoaded", async function () {
+    const providerOptions = {
+        walletconnect: {
+            package: window.WalletConnectProvider.default,
+            options: {
+                rpc: {
+                    1: "https://mainnet.infura.io/v3/YOUR_INFURA_ID" // Ersetze mit deiner Infura ID
                 }
-            } else {
-                alert("No Ethereum wallet found. Please install MetaMask or use another provider.");
+            }
+        },
+        coinbasewallet: {
+            package: window.CoinbaseWalletSDK,
+            options: {
+                appName: "QuantumPepe",
+                rpc: "https://mainnet.infura.io/v3/YOUR_INFURA_ID" // Ersetze mit deiner Infura ID
             }
         }
+    };
 
-        function disconnectWallet() {
-            walletButton.textContent = "Connect Wallet";
-            disconnectButton.style.display = "none";
-        }
-
-        walletButton.addEventListener("click", connectWallet);
-        disconnectButton.addEventListener("click", disconnectWallet);
+    const web3Modal = new window.Web3Modal.default({
+        cacheProvider: false,
+        providerOptions
     });
+
+    let provider;
+    const walletButton = document.querySelector(".wallet-button");
+    const disconnectButton = document.querySelector(".disconnect-wallet");
+
+    async function connectWallet() {
+        try {
+            provider = await web3Modal.connect();
+            const web3Provider = new ethers.providers.Web3Provider(provider);
+            const accounts = await web3Provider.listAccounts();
+
+            if (accounts.length > 0) {
+                console.log("Wallet connected:", accounts[0]);
+                walletButton.textContent = "Wallet Connected";
+                walletButton.style.backgroundColor = "#009900";
+                disconnectButton.style.display = "block";
+            }
+        } catch (error) {
+            console.error("Wallet connection failed:", error);
+        }
+    }
+
+    function disconnectWallet() {
+        if (provider && provider.close) {
+            provider.close();
+        }
+        web3Modal.clearCachedProvider();
+        provider = null;
+        walletButton.textContent = "Connect Wallet";
+        walletButton.style.backgroundColor = "#00ff00";
+        disconnectButton.style.display = "none";
+        console.log("Wallet disconnected");
+    }
+
+    walletButton.addEventListener("click", connectWallet);
+    disconnectButton.addEventListener("click", disconnectWallet);
+});
+
 </script>
+<script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
+<script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers"></script>
 
 </body>
 </html>
