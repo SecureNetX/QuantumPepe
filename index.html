@@ -2,38 +2,37 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web3Modal V2 Test</title>
+  <title>Web3Modal V2 Test mit esm.sh</title>
   <style>
     body {
-      background-color: #004d00;
-      color: #ffffff;
+      background: #004d00;
+      color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      margin: 0;
       padding: 20px;
     }
     button {
       font-size: 1.2em;
       padding: 10px 20px;
       cursor: pointer;
+      margin: 20px;
     }
   </style>
 </head>
 <body>
   <h1>Web3Modal V2 Test</h1>
-  <button id="connectButton">Connect Wallet</button>
-
-  <!-- Wir verwenden ES‑Module über Skypack -->
+  <button id="connectBtn">Connect Wallet</button>
+  
+  <!-- Verwende ES‑Module von esm.sh -->
   <script type="module">
-    // Importiere Web3Modal V2 aus dem ES‑Module CDN
-    import { Web3Modal } from "https://cdn.skypack.dev/@web3modal/html@2.0.8";
-    // Importiere den WalletConnect Provider V2
-    import WalletConnectProvider from "https://cdn.skypack.dev/@walletconnect/web3-provider@2";
-    // Importiere ethers.js
-    import { ethers } from "https://cdn.skypack.dev/ethers@5";
+    // Importiere Web3Modal V2, WalletConnect Provider V2 und ethers.js über esm.sh
+    import { Web3Modal } from "https://esm.sh/@web3modal/html@2.0.7";
+    import WalletConnectProvider from "https://esm.sh/@walletconnect/web3-provider@2";
+    import { ethers } from "https://esm.sh/ethers@5";
 
-    // Konfiguriere Web3Modal V2
+    console.log("Imported Web3Modal:", Web3Modal);
+
+    // Erstelle eine Instanz von Web3Modal V2
     const web3Modal = new Web3Modal({
       projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Dein WalletConnect V2 Project ID
       themeMode: "dark",
@@ -54,11 +53,12 @@
       }
     });
 
-    // Füge den Event-Listener zum Button hinzu
-    document.getElementById("connectButton").addEventListener("click", async () => {
+    // Füge einen Event-Listener zum Button hinzu
+    document.getElementById("connectBtn").addEventListener("click", async () => {
       try {
+        console.log("Connect button clicked. Opening Web3Modal...");
         const provider = await web3Modal.connect();
-        console.log("Connected provider:", provider);
+        console.log("Provider returned:", provider);
         const ethersProvider = new ethers.providers.Web3Provider(provider);
         const accounts = await ethersProvider.listAccounts();
         console.log("Connected accounts:", accounts);
@@ -71,4 +71,3 @@
   </script>
 </body>
 </html>
-
