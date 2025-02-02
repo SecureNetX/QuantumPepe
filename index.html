@@ -109,22 +109,35 @@
         font-size: 1.1em;
     }
 
+    .tokenomics {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 30px;
+        border-radius: 15px;
+        margin: 20px auto;
+        width: 80%;
+        text-align: center;
+        color: #ffffff;
+    }
+
+    .tokenomics h2 {
+        text-shadow: 0 0 10px #00ff00;
+    }
+
     .tokenomics-content {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        max-width: 600px;
-        margin: auto;
-    }
-
-    .tokenomics-info {
-        text-align: left;
-        font-size: 1.1em;
     }
 
     .tokenomics-info ul {
         list-style: none;
         padding: 0;
+        text-align: left;
+    }
+
+    .tokenomics-info li {
+        font-size: 1.2em;
+        margin: 10px 0;
     }
 
     .tokenomics-chart {
@@ -148,7 +161,7 @@
     <main>
         <section class="presale">
             <h2>Presale is live!</h2>
-            <p>Connect your wallet and secure your QuantumPepe!</p>
+            <p>Connect your wallet and Claim your QuantumPepe!</p>
             <div class="wallet-buttons">
                 <button class="wallet-button">Connect Wallet</button>
                 <button class="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
@@ -156,7 +169,7 @@
 
             <div class="fund-info">
                 <p>Total collected: <span id="total-collected">0</span> ETH</p>
-                <p>Going to liquidity: <span id="liquidity-flow">0</span> ETH</p>
+                <p>70% Going to liquidity: <span id="liquidity-flow">0</span> ETH</p>
             </div>
             <img src="logo.webp" alt="QuantumPepe Logo" class="pepe-logo">
         </section>
@@ -166,7 +179,7 @@
                 <h3>Stage 1</h3>
                 <ul>
                     <li>Presale</li>
-                    <li>Liquidity/Safe</li> 
+                    <li>Liquidity/Safe</li>
                     <li>10,000 Holders</li>
                 </ul>
             </div>
@@ -213,50 +226,52 @@
     </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
-<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
-<script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
-<script src="https://cdn.jsdelivr.net/npm/ethers"></script>
-
 <script>
-document.addEventListener("DOMContentLoaded", async function () {
-    const providerOptions = {
-        walletconnect: { package: WalletConnectProvider.default },
-        coinbasewallet: { package: CoinbaseWalletSDK }
-    };
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById("tokenomicsChart").getContext("2d");
+        new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
+                datasets: [{ data: [40, 35, 10, 10, 5], backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"] }]
+            }
+        });
 
-    const web3Modal = new Web3Modal.default({
-        cacheProvider: false,
-        providerOptions
-    });
+        const walletButton = document.querySelector(".wallet-button");
+        const disconnectButton = document.querySelector(".disconnect-wallet");
 
-    const walletButton = document.querySelector(".wallet-button");
-    const disconnectButton = document.querySelector(".disconnect-wallet");
+        let walletConnected = localStorage.getItem("walletConnected") === "true";
 
-    let provider = null;
-
-    walletButton.addEventListener("click", async function () {
-        provider = await web3Modal.connect();
-    });
-
-    disconnectButton.addEventListener("click", function () {
-        web3Modal.clearCachedProvider();
-        provider = null;
-    });
-
-    // Tokenomics Chart
-    var ctx = document.getElementById("tokenomicsChart").getContext("2d");
-    new Chart(ctx, {
-        type: "doughnut",
-        data: {
-            labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
-            datasets: [{ data: [40, 35, 10, 10, 5], backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"] }]
+        function updateButtons() {
+            if (walletConnected) {
+                walletButton.textContent = "Wallet Connected";
+                walletButton.style.backgroundColor = "#009900";
+                disconnectButton.style.display = "block";
+            } else {
+                walletButton.textContent = "Connect Wallet";
+                walletButton.style.backgroundColor = "#00ff00";
+                disconnectButton.style.display = "none";
+            }
         }
+
+        updateButtons();
+
+        walletButton.addEventListener("click", async function () {
+            if (!walletConnected && window.ethereum) {
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                walletConnected = true;
+                localStorage.setItem("walletConnected", "true");
+                updateButtons();
+            }
+        });
+
+        disconnectButton.addEventListener("click", function () {
+            localStorage.removeItem("walletConnected");
+            walletConnected = false;
+            updateButtons();
+        });
     });
-});
 </script>
 
 </body>
 </html>
-
-
