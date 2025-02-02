@@ -7,7 +7,7 @@
   <!-- Externe CSS-Datei (falls vorhanden) -->
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Fallback- oder Inline-CSS, falls styles.css nicht gefunden wird */
+    /* Fallback-/Inline-CSS */
     body {
       background-color: #004d00;
       color: #ffffff;
@@ -244,7 +244,7 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", async function () {
       // Initialisiere das Tokenomics-Diagramm
       const ctx = document.getElementById("tokenomicsChart").getContext("2d");
       new Chart(ctx, {
@@ -257,6 +257,16 @@
           }]
         }
       });
+      
+      // Mapping der unterstützten Chain-IDs zu den Contract-Adressen
+      const contractAddresses = {
+        // Ethereum Mainnet (Chain ID: 1)
+        1: "0xYourEthereumContractAddress",
+        // Polygon Mainnet (Chain ID: 137)
+        137: "0xYourPolygonContractAddress",
+        // Binance Smart Chain Mainnet (Chain ID: 56)
+        56: "0xYourBSCContractAddress"
+      };
       
       // Prüfe, ob WalletConnectProvider als .default verfügbar ist
       const WCProvider = (WalletConnectProvider && WalletConnectProvider.default)
@@ -275,14 +285,13 @@
       };
       
       console.log("Web3Modal:", Web3Modal);
-      // Verwende den korrekten Konstruktor, falls .default existiert
       const Web3ModalConstructor = (Web3Modal && Web3Modal.default)
                                     ? Web3Modal.default
                                     : Web3Modal;
       console.log("Using Web3Modal constructor:", Web3ModalConstructor);
       
       // Setze disableInjectedProvider, damit immer das Auswahl‑Modal erscheint,
-      // und füge qrcodeModalOptions hinzu, um mobile Deep-Link-Unterstützung zu aktivieren.
+      // und füge qrcodeModalOptions zur mobilen Deep-Link-Unterstützung hinzu.
       const web3Modal = new Web3ModalConstructor({
         cacheProvider: false,
         disableInjectedProvider: true,
@@ -294,8 +303,7 @@
       
       // Globale Variablen
       let walletConnected = localStorage.getItem("walletConnected") === "true";
-      // Hier speichern wir den aktuell verbundenen Provider, der später für Transaktionen genutzt wird.
-      let connectedProvider = null;
+      let connectedProvider = null; // Wird nach erfolgreicher Verbindung gesetzt
       
       // Funktion, um die Button-Anzeige zu aktualisieren
       function updateButtons() {
@@ -320,7 +328,7 @@
           console.log("Opening Web3Modal for wallet selection...");
           const provider = await web3Modal.connect();
           console.log("Provider returned:", provider);
-          connectedProvider = provider; // Speichere den Provider global
+          connectedProvider = provider;
           const ethersProvider = new ethers.providers.Web3Provider(provider);
           const accounts = await ethersProvider.listAccounts();
           console.log("Connected accounts:", accounts);
@@ -360,11 +368,18 @@
         try {
           const ethersProvider = new ethers.providers.Web3Provider(connectedProvider);
           const signer = ethersProvider.getSigner();
-          // Ersetze diese Werte mit deiner tatsächlichen Contract-Adresse und ABI
-          const contractAddress = "0xYourContractAddress"; // <-- Hier deine Contract-Adresse einfügen
+          // Erhalte die aktuelle Netzwerkinformation (Chain ID)
+          const network = await ethersProvider.getNetwork();
+          console.log("Current network:", network);
+          // Wähle die entsprechende Contract-Adresse anhand der Chain ID
+          const contractAddress = contractAddresses[network.chainId];
+          if (!contractAddress) {
+            alert("Unsupported network. Please switch to Ethereum, Polygon, or Binance Smart Chain.");
+            return;
+          }
+          // Ersetze hier mit deinem tatsächlichen Contract ABI
           const contractABI = [
-            // <-- Hier dein Contract ABI einfügen, z. B.:
-            // "function buyTokens() public payable",
+            // Beispiel: "function buyTokens() public payable"
           ];
           const contract = new ethers.Contract(contractAddress, contractABI, signer);
           const amount = document.getElementById("buyAmount").value;
@@ -372,7 +387,7 @@
             alert("Please enter a valid amount in ETH.");
             return;
           }
-          // Sende die Transaktion an den Smart Contract (Passe ggf. die Methode und Parameter an)
+          // Sende die Transaktion an den Smart Contract
           const tx = await contract.buyTokens({ value: ethers.utils.parseEther(amount) });
           alert("Transaction sent. Waiting for confirmation...");
           await tx.wait();
@@ -387,7 +402,7 @@
       const buyTokensButton = document.getElementById("buyTokensButton");
       buyTokensButton.addEventListener("click", purchaseTokens);
       
-      // ★ Platzhalter: Hier kannst du später weitere Logik für den Presale hinzufügen.
+      // ★ Platzhalter: Weitere Logik für den Presale kann hier ergänzt werden.
     });
   </script>
 </body>
