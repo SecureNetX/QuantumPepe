@@ -17,9 +17,9 @@
   <script>
     document.getElementById("connectBtn").addEventListener("click", async () => {
       try {
-        // Initialisiere Web3Modal V2 mit deinem WalletConnect Project ID
-        const web3Modal = new window.Web3Modal({
-          projectId: "c1b3c575703c52649f0a69c9e6b3e836",
+        // Verwende den globalen Namen "Web3ModalHtml.Web3Modal" (nicht window.Web3Modal)
+        const web3Modal = new window.Web3ModalHtml.Web3Modal({
+          projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Dein WalletConnect V2 Project ID
           themeMode: "dark",
           defaultChain: 1,
           mobileWallets: [
@@ -29,12 +29,8 @@
             { name: "Rainbow", deepLink: "rainbow://", id: "rainbow" }
           ]
         });
-        
-        // Öffne das Modal, um einen Wallet-Anbieter auszuwählen
         const provider = await web3Modal.connect();
         console.log("Provider:", provider);
-        
-        // Erzeuge einen ethers.js Provider und liste die Konten auf
         const ethersProvider = new ethers.providers.Web3Provider(provider);
         const accounts = await ethersProvider.listAccounts();
         alert("Connected: " + accounts[0]);
