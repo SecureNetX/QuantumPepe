@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantumPepe Presale</title>
-  <!-- Falls du eine externe CSS-Datei verwendest, stelle sicher, dass der Pfad stimmt -->
+  <!-- Externe CSS-Datei (falls vorhanden; ansonsten wird das Inline-CSS verwendet) -->
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Fallback- oder Inline-CSS – falls styles.css nicht gefunden wird */
+    /* Fallback- oder Inline-CSS, falls styles.css nicht gefunden wird */
     body {
       background-color: #004d00;
       color: #ffffff;
@@ -208,10 +208,11 @@
   
   <!-- Externe Skripte -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Web3Modal und Abhängigkeiten – wir nutzen jsDelivr für Web3Modal -->
+  <!-- Web3Modal laden (über jsDelivr) -->
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
-  <!-- Beachte: Falls du den WalletConnect Provider verwendest, stelle sicher, dass dieser korrekt geladen wird -->
+  <!-- WalletConnect Provider -->
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   
   <script>
@@ -229,9 +230,9 @@
         }
       });
       
-      // Prüfe, ob WalletConnectProvider unter .default verfügbar ist, und verwende es gegebenenfalls
-      const WCProvider = (WalletConnectProvider && WalletConnectProvider.default) 
-                          ? WalletConnectProvider.default 
+      // Prüfe, ob WalletConnectProvider als .default verfügbar ist
+      const WCProvider = (WalletConnectProvider && WalletConnectProvider.default)
+                          ? WalletConnectProvider.default
                           : WalletConnectProvider;
       
       // Konfiguration der Provider-Optionen für Web3Modal (mit deiner Infura-ID)
@@ -242,12 +243,14 @@
             infuraId: "ae19524c28104cafb33fe96211b9376e"
           }
         }
-        // Hier können weitere Anbieter (z. B. Coinbase Wallet) hinzugefügt werden.
+        // Weitere Anbieter (z.B. Coinbase Wallet) können hier hinzugefügt werden.
       };
       
       console.log("Web3Modal:", Web3Modal);
-      // Verwende den korrekten Konstruktor (falls .default existiert)
-      const Web3ModalConstructor = (Web3Modal && Web3Modal.default) ? Web3Modal.default : Web3Modal;
+      // Verwende den korrekten Konstruktor, falls .default existiert
+      const Web3ModalConstructor = (Web3Modal && Web3Modal.default)
+                                    ? Web3Modal.default
+                                    : Web3Modal;
       console.log("Using Web3Modal constructor:", Web3ModalConstructor);
       
       // Initialisiere Web3Modal
@@ -279,27 +282,48 @@
       // Event-Listener für den "Connect Wallet"-Button
       walletButton.addEventListener("click", async function () {
         console.log("Wallet button clicked");
-        if (!walletConnected) {
+        // Versuche zuerst, MetaMask direkt über window.ethereum zu nutzen
+        if (window.ethereum) {
           try {
-            console.log("Opening Web3Modal...");
-            const provider = await web3Modal.connect();
-            console.log("Provider returned:", provider);
-            const ethersProvider = new ethers.providers.Web3Provider(provider);
-            const accounts = await ethersProvider.listAccounts();
-            console.log("Connected accounts:", accounts);
+            console.log("Using native MetaMask (window.ethereum)");
+            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
             if (accounts.length > 0) {
               walletConnected = true;
               localStorage.setItem("walletConnected", "true");
               updateButtons();
               console.log("Connected account:", accounts[0]);
               alert("Wallet connected: " + accounts[0]);
+              return; // Erfolgreich verbunden – kein Fallback nötig
             } else {
               alert("No account found. Please check your wallet.");
             }
           } catch (error) {
-            console.error("Error connecting wallet:", error);
-            alert("Failed to connect wallet. Please try again.");
+            console.error("Error connecting via MetaMask:", error);
+            alert("Failed to connect via MetaMask. Please try again.");
+            return;
           }
+        }
+        
+        // Fallback: Falls kein window.ethereum vorhanden ist, verwende Web3Modal (WalletConnect)
+        try {
+          console.log("No window.ethereum found, opening Web3Modal...");
+          const provider = await web3Modal.connect();
+          console.log("Provider returned:", provider);
+          const ethersProvider = new ethers.providers.Web3Provider(provider);
+          const accounts = await ethersProvider.listAccounts();
+          console.log("Connected accounts:", accounts);
+          if (accounts.length > 0) {
+            walletConnected = true;
+            localStorage.setItem("walletConnected", "true");
+            updateButtons();
+            console.log("Connected account:", accounts[0]);
+            alert("Wallet connected: " + accounts[0]);
+          } else {
+            alert("No account found. Please check your wallet.");
+          }
+        } catch (error) {
+          console.error("Error connecting wallet via Web3Modal:", error);
+          alert("Failed to connect wallet. Please try again.");
         }
       });
       
