@@ -210,6 +210,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Web3Modal und Abhängigkeiten – wir nutzen jsDelivr für Web3Modal -->
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
+  <!-- Beachte: Falls du den WalletConnect Provider verwendest, stelle sicher, dass dieser korrekt geladen wird -->
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   
@@ -228,10 +229,15 @@
         }
       });
       
+      // Prüfe, ob WalletConnectProvider unter .default verfügbar ist, und verwende es gegebenenfalls
+      const WCProvider = (WalletConnectProvider && WalletConnectProvider.default) 
+                          ? WalletConnectProvider.default 
+                          : WalletConnectProvider;
+      
       // Konfiguration der Provider-Optionen für Web3Modal (mit deiner Infura-ID)
       const providerOptions = {
         walletconnect: {
-          package: WalletConnectProvider,
+          package: WCProvider,
           options: {
             infuraId: "ae19524c28104cafb33fe96211b9376e"
           }
@@ -239,9 +245,8 @@
         // Hier können weitere Anbieter (z. B. Coinbase Wallet) hinzugefügt werden.
       };
       
-      // Debug: Ausgabe von Web3Modal
       console.log("Web3Modal:", Web3Modal);
-      // Verwende Web3Modal.default falls vorhanden, ansonsten Web3Modal
+      // Verwende den korrekten Konstruktor (falls .default existiert)
       const Web3ModalConstructor = (Web3Modal && Web3Modal.default) ? Web3Modal.default : Web3Modal;
       console.log("Using Web3Modal constructor:", Web3ModalConstructor);
       
