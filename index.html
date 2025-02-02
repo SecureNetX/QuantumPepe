@@ -4,10 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantumPepe Presale</title>
-  <!-- Externe CSS-Datei (falls vorhanden; ansonsten wird das Inline-CSS verwendet) -->
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Fallback- oder Inline-CSS, falls styles.css nicht gefunden wird */
+    /* Fallback-/Inline-CSS */
     body {
       background-color: #004d00;
       color: #ffffff;
@@ -208,11 +207,8 @@
   
   <!-- Externe Skripte -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Web3Modal laden (über jsDelivr) -->
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
-  <!-- WalletConnect Provider -->
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
-  <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   
   <script>
@@ -243,20 +239,18 @@
             infuraId: "ae19524c28104cafb33fe96211b9376e"
           }
         }
-        // Hier können weitere Anbieter (z. B. Coinbase Wallet) hinzugefügt werden.
+        // Hier können weitere Anbieter hinzugefügt werden.
       };
       
       console.log("Web3Modal:", Web3Modal);
-      // Verwende den korrekten Konstruktor, falls .default existiert
       const Web3ModalConstructor = (Web3Modal && Web3Modal.default)
                                     ? Web3Modal.default
                                     : Web3Modal;
       console.log("Using Web3Modal constructor:", Web3ModalConstructor);
       
-      // WICHTIG: Setze disableInjectedProvider auf true, damit der Nutzer immer die Wallet-Auswahl sieht
+      // Initialisiere Web3Modal (ohne disableInjectedProvider, damit alle Optionen angezeigt werden)
       const web3Modal = new Web3ModalConstructor({
         cacheProvider: false,
-        disableInjectedProvider: true, // Erzwingt die Anzeige des Wallet-Auswahlmodals
         providerOptions
       });
       
@@ -265,7 +259,6 @@
       const disconnectButton = document.querySelector(".disconnect-wallet");
       let walletConnected = localStorage.getItem("walletConnected") === "true";
       
-      // Funktion, um die Button-Anzeige zu aktualisieren
       function updateButtons() {
         if (walletConnected) {
           walletButton.textContent = "Wallet Connected";
@@ -322,3 +315,4 @@
   </script>
 </body>
 </html>
+
