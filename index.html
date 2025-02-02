@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantumPepe Presale</title>
+  <!-- Falls du eine externe CSS-Datei verwendest, stelle sicher, dass der Pfad stimmt -->
   <link rel="stylesheet" href="styles.css" />
   <style>
+    /* Fallback- oder Inline-CSS – falls styles.css nicht gefunden wird */
     body {
       background-color: #004d00;
       color: #ffffff;
@@ -146,14 +148,13 @@
         <button class="wallet-button">Connect Wallet</button>
         <button class="disconnect-wallet">Disconnect Wallet</button>
       </div>
-
       <div class="fund-info">
         <p>Total collected: <span id="total-collected">0</span> ETH</p>
         <p>Going to liquidity: <span id="liquidity-flow">0</span> ETH</p>
       </div>
       <img src="logo.webp" alt="QuantumPepe Logo" class="pepe-logo">
     </section>
-
+    
     <section class="stages">
       <div class="stage">
         <h3>Stage 1</h3>
@@ -181,7 +182,7 @@
         </ul>
       </div>
     </section>
-
+    
     <section class="tokenomics">
       <h2>QuantumPepe Tokenomics</h2>
       <div class="tokenomics-content">
@@ -200,21 +201,21 @@
       </div>
     </section>
   </main>
-
+  
   <footer>
     <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
   </footer>
-
+  
   <!-- Externe Skripte -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Web3Modal und Abhängigkeiten -->
-  <script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
+  <!-- Web3Modal und Abhängigkeiten – wir nutzen jsDelivr für Web3Modal -->
+  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-
+  
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      // Tokenomics-Diagramm initialisieren
+      // Initialisiere das Tokenomics-Diagramm
       const ctx = document.getElementById("tokenomicsChart").getContext("2d");
       new Chart(ctx, {
         type: "doughnut",
@@ -226,28 +227,36 @@
           }]
         }
       });
-
-      // Konfiguration der Provider-Optionen für Web3Modal mit deiner Infura-ID
+      
+      // Konfiguration der Provider-Optionen für Web3Modal (mit deiner Infura-ID)
       const providerOptions = {
         walletconnect: {
           package: WalletConnectProvider,
           options: {
-            infuraId: "ae19524c28104cafb33fe96211b9376e" // Deine Infura-Projekt-ID
+            infuraId: "ae19524c28104cafb33fe96211b9376e"
           }
         }
-        // Weitere Anbieter (z. B. Coinbase Wallet) können hier hinzugefügt werden.
+        // Hier können weitere Anbieter (z. B. Coinbase Wallet) hinzugefügt werden.
       };
-
-      // Web3Modal initialisieren – ACHTUNG: hier ohne window.Web3Modal.default!
-      const web3Modal = new Web3Modal({
+      
+      // Debug: Ausgabe von Web3Modal
+      console.log("Web3Modal:", Web3Modal);
+      // Verwende Web3Modal.default falls vorhanden, ansonsten Web3Modal
+      const Web3ModalConstructor = (Web3Modal && Web3Modal.default) ? Web3Modal.default : Web3Modal;
+      console.log("Using Web3Modal constructor:", Web3ModalConstructor);
+      
+      // Initialisiere Web3Modal
+      const web3Modal = new Web3ModalConstructor({
         cacheProvider: false,
         providerOptions
       });
-
+      
+      // Hole die Buttons
       const walletButton = document.querySelector(".wallet-button");
       const disconnectButton = document.querySelector(".disconnect-wallet");
       let walletConnected = localStorage.getItem("walletConnected") === "true";
-
+      
+      // Funktion, um die Button-Anzeige zu aktualisieren
       function updateButtons() {
         if (walletConnected) {
           walletButton.textContent = "Wallet Connected";
@@ -259,36 +268,37 @@
           disconnectButton.style.display = "none";
         }
       }
-
+      
       updateButtons();
-
+      
+      // Event-Listener für den "Connect Wallet"-Button
       walletButton.addEventListener("click", async function () {
+        console.log("Wallet button clicked");
         if (!walletConnected) {
           try {
-            // Öffnet das Web3Modal zur Wallet-Auswahl
+            console.log("Opening Web3Modal...");
             const provider = await web3Modal.connect();
-            // Erstelle einen Ethers-Provider
+            console.log("Provider returned:", provider);
             const ethersProvider = new ethers.providers.Web3Provider(provider);
-            // Hole die verbundenen Konten
             const accounts = await ethersProvider.listAccounts();
+            console.log("Connected accounts:", accounts);
             if (accounts.length > 0) {
               walletConnected = true;
               localStorage.setItem("walletConnected", "true");
               updateButtons();
-              console.log("Verbundenes Konto:", accounts[0]);
-              alert("Wallet verbunden: " + accounts[0]);
-
-              // ★ Hier kannst du später deine Logik einfügen, um den Presale zu starten.
+              console.log("Connected account:", accounts[0]);
+              alert("Wallet connected: " + accounts[0]);
             } else {
-              alert("Kein Konto gefunden. Bitte überprüfe deine Wallet.");
+              alert("No account found. Please check your wallet.");
             }
           } catch (error) {
-            console.error("Wallet-Verbindung fehlgeschlagen:", error);
-            alert("Wallet-Verbindung fehlgeschlagen. Bitte versuche es erneut.");
+            console.error("Error connecting wallet:", error);
+            alert("Failed to connect wallet. Please try again.");
           }
         }
       });
-
+      
+      // Event-Listener für den "Disconnect Wallet"-Button
       disconnectButton.addEventListener("click", async function () {
         if (web3Modal && web3Modal.clearCachedProvider) {
           web3Modal.clearCachedProvider();
@@ -296,13 +306,11 @@
         localStorage.removeItem("walletConnected");
         walletConnected = false;
         updateButtons();
-        alert("Wallet getrennt.");
+        alert("Wallet disconnected.");
       });
-
-      // ★ Platzhalter-Funktion für den Token-Kauf (Presale)
-      // async function purchaseTokens(ethersProvider, account) {
-      //   // Hier schreibst du den Code, um mit deinem Smart Contract zu interagieren.
-      // }
+      
+      // ★ Platzhalter: Hier kannst du später deine Logik für den Tokenkauf (Presale) einfügen.
+      // async function purchaseTokens(ethersProvider, account) { ... }
     });
   </script>
 </body>
