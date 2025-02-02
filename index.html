@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantumPepe Presale</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
   <style>
     body {
       background-color: #004d00;
@@ -41,7 +41,8 @@
       gap: 10px;
       margin-top: 10px;
     }
-    .wallet-button, .disconnect-wallet {
+    .wallet-button,
+    .disconnect-wallet {
       width: 180px;
       height: 45px;
       font-size: 1.2em;
@@ -130,7 +131,7 @@
       background: rgba(0, 0, 0, 0.6);
       text-align: center;
     }
-  </style>  
+  </style>
 </head>
 <body>
   <header>
@@ -143,7 +144,7 @@
       <p>Connect your wallet and secure your QuantumPepe!</p>
       <div class="wallet-buttons">
         <button class="wallet-button">Connect Wallet</button>
-        <button class="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
+        <button class="disconnect-wallet">Disconnect Wallet</button>
       </div>
 
       <div class="fund-info">
@@ -204,7 +205,13 @@
     <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
   </footer>
 
+  <!-- Externe Skripte -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Web3Modal und Abhängigkeiten -->
+  <script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       // Chart initialisieren
@@ -218,6 +225,23 @@
             backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"]
           }]
         }
+      });
+
+      // Konfiguration der Provider-Optionen für Web3Modal
+      const providerOptions = {
+        walletconnect: {
+          package: WalletConnectProvider, // walletconnect als Package
+          options: {
+            infuraId: "YOUR_INFURA_ID" // Ersetze "YOUR_INFURA_ID" mit deiner Infura Project ID
+          }
+        }
+        // Hier können weitere Anbieter hinzugefügt werden (z. B. Coinbase Wallet)
+      };
+
+      // Web3Modal initialisieren
+      const web3Modal = new window.Web3Modal.default({
+        cacheProvider: false,
+        providerOptions
       });
 
       const walletButton = document.querySelector(".wallet-button");
@@ -241,23 +265,29 @@
 
       walletButton.addEventListener("click", async function () {
         if (!walletConnected) {
-          if (window.ethereum) {
-            try {
-              await window.ethereum.request({ method: "eth_requestAccounts" });
+          try {
+            // Öffnet das Web3Modal, sodass der Nutzer einen Anbieter auswählen kann
+            const provider = await web3Modal.connect();
+            // Erzeugen eines Ethers-Providers
+            const ethersProvider = new ethers.providers.Web3Provider(provider);
+            const accounts = await ethersProvider.listAccounts();
+            if (accounts.length > 0) {
               walletConnected = true;
               localStorage.setItem("walletConnected", "true");
               updateButtons();
-            } catch (error) {
-              console.error("Fehler beim Verbinden mit der Wallet:", error);
-              alert("Verbindung zur Wallet fehlgeschlagen. Bitte versuche es erneut.");
             }
-          } else {
-            alert("Kein Ethereum-Wallet gefunden. Bitte installiere MetaMask oder eine andere kompatible Wallet.");
+          } catch (error) {
+            console.error("Wallet-Verbindung fehlgeschlagen:", error);
+            alert("Wallet-Verbindung fehlgeschlagen. Bitte versuche es erneut.");
           }
         }
       });
 
-      disconnectButton.addEventListener("click", function () {
+      disconnectButton.addEventListener("click", async function () {
+        // Löscht den Cache des Providers (falls unterstützt)
+        if (web3Modal && web3Modal.clearCachedProvider) {
+          web3Modal.clearCachedProvider();
+        }
         localStorage.removeItem("walletConnected");
         walletConnected = false;
         updateButtons();
@@ -267,3 +297,5 @@
 
 </body>
 </html>
+
+
