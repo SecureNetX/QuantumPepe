@@ -5,153 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuantumPepe Presale</title>
     <link rel="stylesheet" href="styles.css">
-<style>
-    body {
-        background-color: #004d00;
-        color: #ffffff;
-        font-family: 'Orbitron', sans-serif;
-        text-align: center;
-        margin: 0;
-        padding: 0;
-    }
-
-    .pepe-logo {
-        width: 170px;
-        height: auto;
-        position: absolute;
-        right: 50px;
-        top: 180px;
-        z-index: 10;
-    }
-
-    .ai-title {
-        font-size: 3em;
-        text-shadow: 0 0 10px #00ff00;
-        margin-top: 20px;
-    }
-
-    .presale {
-        background: rgba(0, 0, 0, 0.6);
-        padding: 20px;
-        border-radius: 10px;
-        margin: 20px auto;
-        width: 50%;
-        text-align: center;
-    }
-
-    .wallet-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .wallet-button, .disconnect-wallet {
-        width: 180px;
-        height: 45px;
-        font-size: 1.2em;
-        border-radius: 8px;
-    }
-
-    .wallet-button {
-        background: #00ff00;
-        color: #000;
-        border: none;
-        cursor: pointer;
-    }
-
-    .wallet-button:hover {
-        background: #33ff33;
-    }
-
-    .disconnect-wallet {
-        background: #ff0000;
-        color: #ffffff;
-        border: none;
-        cursor: pointer;
-        display: none;
-    }
-
-    .disconnect-wallet:hover {
-        background: #cc0000;
-    }
-
-    .fund-info {
-        margin-top: 10px;
-        font-size: 1.1em;
-    }
-
-    .stages {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 20px;
-    }
-
-    .stage {
-        background: rgba(0, 0, 0, 0.6);
-        padding: 20px;
-        border-radius: 10px;
-        width: 30%;
-        text-align: left;
-    }
-
-    .stage h3 {
-        text-align: center;
-        margin-bottom: 10px;
-    }
-
-    .stage ul {
-        list-style-type: disc;
-        padding-left: 20px;
-        text-align: left;
-        line-height: 2em;
-        font-size: 1.1em;
-    }
-
-    .tokenomics {
-        background: rgba(0, 0, 0, 0.6);
-        padding: 30px;
-        border-radius: 15px;
-        margin: 20px auto;
-        width: 80%;
-        text-align: center;
-        color: #ffffff;
-    }
-
-    .tokenomics h2 {
-        text-shadow: 0 0 10px #00ff00;
-    }
-
-    .tokenomics-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .tokenomics-info ul {
-        list-style: none;
-        padding: 0;
-        text-align: left;
-    }
-
-    .tokenomics-info li {
-        font-size: 1.2em;
-        margin: 10px 0;
-    }
-
-    .tokenomics-chart {
-        width: 300px;
-        height: 300px;
-    }
-
-    footer {
-        margin-top: 20px;
-        padding: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        text-align: center;
-    }
-</style>  
+    <script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -164,7 +22,7 @@
             <p>Connect your wallet and secure your QuantumPepe!</p>
             <div class="wallet-buttons">
                 <button class="wallet-button">Connect Wallet</button>
-                <button class="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
+                <button class="disconnect-wallet" style="display: none;">Disconnect</button>
             </div>
 
             <div class="fund-info">
@@ -187,7 +45,7 @@
                 <h3>Stage 2</h3>
                 <ul>
                     <li>DEX Exchange</li>
-                    <li>Staking</li>
+                    <li>Staking/Rewards-10%</li>
                     <li>25,000 Holders</li>
                 </ul>
             </div>
@@ -202,6 +60,7 @@
             </div>
         </section>
 
+        <!-- TOKENOMICS SECTION -->
         <section class="tokenomics">
             <h2>QuantumPepe Tokenomics</h2>
             <div class="tokenomics-content">
@@ -221,94 +80,75 @@
         </section>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+    <footer>
+        <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
+    </footer>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        const providerOptions = {
+            walletconnect: {
+                package: WalletConnectProvider.default,
+                options: {
+                    infuraId: "YOUR_INFURA_ID"
+                }
+            },
+            coinbasewallet: {
+                package: CoinbaseWalletSDK,
+                options: {
+                    appName: "QuantumPepe"
+                }
+            }
+        };
+
+        const web3Modal = new Web3Modal.default({
+            cacheProvider: false,
+            providerOptions
+        });
+
+        const walletButton = document.querySelector(".wallet-button");
+        const disconnectButton = document.querySelector(".disconnect-wallet");
+        let provider = null;
+
+        async function connectWallet() {
+            try {
+                provider = await web3Modal.connect();
+                console.log("Wallet connected:", provider);
+                walletButton.textContent = "Wallet Connected";
+                walletButton.style.backgroundColor = "#009900";
+                disconnectButton.style.display = "block";
+            } catch (error) {
+                console.error("Wallet connection failed:", error);
+            }
+        }
+
+        function disconnectWallet() {
+            provider = null;
+            web3Modal.clearCachedProvider();
+            walletButton.textContent = "Connect Wallet";
+            walletButton.style.backgroundColor = "#00ff00";
+            disconnectButton.style.display = "none";
+            console.log("Wallet disconnected");
+        }
+
+        walletButton.addEventListener("click", connectWallet);
+        disconnectButton.addEventListener("click", disconnectWallet);
+    });
+    
     document.addEventListener("DOMContentLoaded", function () {
         var ctx = document.getElementById("tokenomicsChart").getContext("2d");
         new Chart(ctx, {
             type: "doughnut",
             data: {
                 labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
-                datasets: [{ data: [40, 35, 10, 10, 5], backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"] }]
+                datasets: [{
+                    data: [40, 35, 10, 10, 5],
+                    backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"]
+                }]
             }
         });
-
-        const walletButton = document.querySelector(".wallet-button");
-        const disconnectButton = document.querySelector(".disconnect-wallet");
-
-        let walletConnected = localStorage.getItem("walletConnected") === "true";
-
-        function updateButtons() {
-            if (walletConnected) {
-                walletButton.textContent = "Wallet Connected";
-                walletButton.style.backgroundColor = "#009900";
-                disconnectButton.style.display = "block";
-            } else {
-                walletButton.textContent = "Connect Wallet";
-                walletButton.style.backgroundColor = "#00ff00";
-                disconnectButton.style.display = "none";
-            }
-        }
-
-        updateButtons();
-
-        document.addEventListener("DOMContentLoaded", async function () {
-    const providerOptions = {
-        walletconnect: {
-            package: window.WalletConnectProvider,
-            options: {
-                infuraId: "YOUR_INFURA_ID" // Falls du Infura nutzt, sonst leer lassen
-            }
-        },
-        coinbasewallet: {
-            package: window.CoinbaseWalletSDK,
-            options: {
-                appName: "QuantumPepe"
-            }
-        }
-    };
-
-    const web3Modal = new window.Web3Modal.default({
-        cacheProvider: false,
-        providerOptions
     });
-
-    const walletButton = document.querySelector(".wallet-button");
-    const disconnectButton = document.querySelector(".disconnect-wallet");
-
-    let provider = null;
-
-    async function connectWallet() {
-        try {
-            provider = await web3Modal.connect();
-            console.log("Wallet connected:", provider);
-            walletButton.textContent = "Wallet Connected";
-            walletButton.style.backgroundColor = "#009900";
-            disconnectButton.style.display = "block";
-        } catch (error) {
-            console.error("Wallet connection failed:", error);
-        }
-    }
-
-    function disconnectWallet() {
-        provider = null;
-        web3Modal.clearCachedProvider();
-        walletButton.textContent = "Connect Wallet";
-        walletButton.style.backgroundColor = "#00ff00";
-        disconnectButton.style.display = "none";
-        console.log("Wallet disconnected");
-    }
-
-    walletButton.addEventListener("click", connectWallet);
-    disconnectButton.addEventListener("click", disconnectWallet);
-});
-
-</script>
-<script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
-<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
-<script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
-<script src="https://cdn.jsdelivr.net/npm/ethers"></script>
-
+    </script>
 </body>
 </html>
 
