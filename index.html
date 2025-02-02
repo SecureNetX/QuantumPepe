@@ -76,6 +76,11 @@
         background: #cc0000;
     }
 
+    .fund-info {
+        margin-top: 10px;
+        font-size: 1.1em;
+    }
+
     .stages {
         display: flex;
         justify-content: center;
@@ -91,30 +96,68 @@
         text-align: left;
     }
 
+    .stage h3 {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .stage ul {
+        list-style-type: disc;
+        padding-left: 20px;
+        text-align: left;
+        line-height: 2em;
+        font-size: 1.1em;
+    }
+
+    .tokenomics {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 30px;
+        border-radius: 15px;
+        margin: 20px auto;
+        width: 80%;
+        text-align: center;
+        color: #ffffff;
+    }
+
+    .tokenomics h2 {
+        text-shadow: 0 0 10px #00ff00;
+    }
+
     .tokenomics-content {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        max-width: 600px;
-        margin: auto;
     }
 
-    .tokenomics-info {
+    .tokenomics-info ul {
+        list-style: none;
+        padding: 0;
         text-align: left;
-        font-size: 1.1em;
+    }
+
+    .tokenomics-info li {
+        font-size: 1.2em;
+        margin: 10px 0;
     }
 
     .tokenomics-chart {
         width: 300px;
         height: 300px;
     }
-</style>
+
+    footer {
+        margin-top: 20px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        text-align: center;
+    }
+</style>  
 </head>
 <body>
     <header>
         <h1 class="ai-title">QuantumPepe is here!</h1>
     </header>
-    
+   
     <main>
         <section class="presale">
             <h2>Presale is live!</h2>
@@ -123,6 +166,12 @@
                 <button class="wallet-button">Connect Wallet</button>
                 <button class="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
             </div>
+
+            <div class="fund-info">
+                <p>Total collected: <span id="total-collected">0</span> ETH</p>
+                <p>70% Going to liquidity: <span id="liquidity-flow">0</span> ETH</p>
+            </div>
+            <img src="logo.webp" alt="QuantumPepe Logo" class="pepe-logo">
         </section>
 
         <section class="stages">
@@ -172,51 +221,57 @@
         </section>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers"></script>
-    
-    <script>
-        document.addEventListener("DOMContentLoaded", async function () {
-            const providerOptions = {
-                walletconnect: {
-                    package: WalletConnectProvider.default,
-                    options: {
-                        infuraId: "YOUR_INFURA_ID"
-                    }
-                },
-                coinbasewallet: {
-                    package: CoinbaseWalletSDK,
-                    options: {
-                        appName: "QuantumPepe"
-                    }
-                }
-            };
+    <footer>
+        <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
+    </footer>
 
-            const web3Modal = new Web3Modal.default({
-                cacheProvider: false,
-                providerOptions
-            });
-
-            const walletButton = document.querySelector(".wallet-button");
-            const disconnectButton = document.querySelector(".disconnect-wallet");
-            let provider = null;
-
-            walletButton.addEventListener("click", async function () {
-                provider = await web3Modal.connect();
-                walletButton.textContent = "Wallet Connected";
-                disconnectButton.style.display = "block";
-            });
-
-            disconnectButton.addEventListener("click", function () {
-                web3Modal.clearCachedProvider();
-                provider = null;
-                walletButton.textContent = "Connect Wallet";
-                disconnectButton.style.display = "none";
-            });
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById("tokenomicsChart").getContext("2d");
+        new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
+                datasets: [{ data: [40, 35, 10, 10, 5], backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"] }]
+            }
         });
-    </script>
+
+        const walletButton = document.querySelector(".wallet-button");
+        const disconnectButton = document.querySelector(".disconnect-wallet");
+
+        let walletConnected = localStorage.getItem("walletConnected") === "true";
+
+        function updateButtons() {
+            if (walletConnected) {
+                walletButton.textContent = "Wallet Connected";
+                walletButton.style.backgroundColor = "#009900";
+                disconnectButton.style.display = "block";
+            } else {
+                walletButton.textContent = "Connect Wallet";
+                walletButton.style.backgroundColor = "#00ff00";
+                disconnectButton.style.display = "none";
+            }
+        }
+
+        updateButtons();
+
+        walletButton.addEventListener("click", async function () {
+            if (!walletConnected && window.ethereum) {
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                walletConnected = true;
+                localStorage.setItem("walletConnected", "true");
+                updateButtons();
+            }
+        });
+
+        disconnectButton.addEventListener("click", function () {
+            localStorage.removeItem("walletConnected");
+            walletConnected = false;
+            updateButtons();
+        });
+    });
+</script>
+
 </body>
 </html>
