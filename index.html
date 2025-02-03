@@ -243,10 +243,12 @@
  
   <!-- Externe Skripte -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Web3Modal laden (über jsDelivr) -->
+  <!-- Web3Modal -->
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
   <!-- WalletConnect Provider -->
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <!-- Coinbase Wallet SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk/dist/wallet-sdk.min.js"></script>
   <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
  
@@ -280,28 +282,42 @@
                           ? WalletConnectProvider.default
                           : WalletConnectProvider;
      
-      // Konfiguration der Provider-Optionen für Web3Modal (mit Infura-ID)
+      // Konfiguration der Provider-Optionen für Web3Modal
       const providerOptions = {
+        injected: {
+          display: {
+            name: "MetaMask",
+            description: "Connect with your browser wallet"
+          },
+          package: null
+        },
         walletconnect: {
           package: WCProvider,
           options: {
             infuraId: "ae19524c28104cafb33fe96211b9376e"
           }
+        },
+        coinbasewallet: {
+          package: CoinbaseWalletSDK,
+          options: {
+            appName: "QuantumPepe Presale",
+            infuraId: "ae19524c28104cafb33fe96211b9376e",
+            rpc: "", // Optional: eigene RPC-URL einfügen, falls gewünscht
+            chainId: 1,
+            darkMode: false
+          }
         }
-        // Weitere Anbieter (z. B. Coinbase Wallet) können hier hinzugefügt werden.
       };
      
-      console.log("Web3Modal:", Web3Modal);
+      // Nutze den richtigen Konstruktor für Web3Modal
       const Web3ModalConstructor = (Web3Modal && Web3Modal.default)
                                     ? Web3Modal.default
                                     : Web3Modal;
       console.log("Using Web3Modal constructor:", Web3ModalConstructor);
      
-      // Setze disableInjectedProvider, damit immer das Auswahl‑Modal erscheint,
-      // und füge qrcodeModalOptions zur mobilen Deep-Link-Unterstützung hinzu.
+      // Erstelle eine Instanz von Web3Modal (ohne disableInjectedProvider, damit injected Wallets angezeigt werden)
       const web3Modal = new Web3ModalConstructor({
         cacheProvider: false,
-        disableInjectedProvider: true,
         providerOptions,
         qrcodeModalOptions: {
           mobileLinks: ["metamask", "trust", "coinbase", "rainbow"]
@@ -445,3 +461,4 @@
   </script>
 </body>
 </html>
+
