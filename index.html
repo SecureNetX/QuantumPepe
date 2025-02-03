@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("🚀 QuantumPepe Wallet Connector geladen!");
 
     const WALLETCONNECT_PROJECT_ID = "c1b3c575703c52649f0a69c9e6b3e836";
-    
+
     const connectButton = document.querySelector(".wallet-button");
     const disconnectButton = document.querySelector(".disconnect-wallet");
     const connectedAccount = document.getElementById("connectedAccount");
@@ -112,7 +112,39 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
 
         console.log("✅ Web3Modal wurde erfolgreich geladen!");
+
+        // TEST: Überprüfen, ob der Button existiert
+        if (!connectButton) {
+            console.error("❌ Connect Button nicht gefunden!");
+            return;
+        }
+
+        console.log("✅ Connect Button gefunden!");
+
+        // Event-Listener für Wallet-Connect-Button hinzufügen
+        connectButton.addEventListener("click", async function () {
+            console.log("🔗 Button geklickt, versuche Wallet zu verbinden...");
+
+            try {
+                provider = await web3Modal.connect();
+                web3 = new Web3(provider);
+
+                const accounts = await web3.eth.getAccounts();
+                if (accounts.length > 0) {
+                    console.log("✅ Wallet verbunden:", accounts[0]);
+                    connectedAccount.textContent = `✅ Verbunden: ${accounts[0]}`;
+                } else {
+                    console.error("❌ Keine Wallet-Adresse gefunden!");
+                    connectedAccount.textContent = "⚠ Nicht verbunden";
+                }
+            } catch (error) {
+                console.error("❌ Fehler beim Verbinden der Wallet:", error);
+            }
+        });
     }
+
+    // Initialisierung von Web3Modal nach Laden des Scripts
+    setTimeout(initWeb3Modal, 1000);  // Warte eine Sekunde, damit Web3Modal sicher geladen ist
 });
 </script>
 
