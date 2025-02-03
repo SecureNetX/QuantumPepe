@@ -84,71 +84,83 @@
     <script src="https://cdn.jsdelivr.net/npm/@web3modal/html@2/dist/index.iife.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", async function () {
-            console.log("🚀 QuantumPepe Wallet Connector geladen!");
+    document.addEventListener("DOMContentLoaded", async function () {
+        console.log("🚀 QuantumPepe Wallet Connector geladen!");
 
-            const WALLETCONNECT_PROJECT_ID = "c1b3c575703c52649f0a69c9e6b3e836"; 
+        const WALLETCONNECT_PROJECT_ID = "c1b3c575703c52649f0a69c9e6b3e836"; 
 
-            const connectButton = document.querySelector(".wallet-button");
-            const disconnectButton = document.querySelector(".disconnect-wallet");
-            const connectedAccount = document.getElementById("connectedAccount");
+        const connectButton = document.querySelector(".wallet-button");
+        const disconnectButton = document.querySelector(".disconnect-wallet");
+        const connectedAccount = document.getElementById("connectedAccount");
 
-            let web3Modal;
-            let provider;
-            let web3;
+        let web3Modal;
+        let provider;
+        let web3;
 
-            function initWeb3Modal() {
-                console.log("🔗 Initialisiere Web3Modal...");
-                web3Modal = new window.Web3ModalHtml.Web3Modal({
-                    projectId: WALLETCONNECT_PROJECT_ID,
-                    themeMode: "dark",
-                    mobileWallets: [
-                        { name: "MetaMask", deepLink: "metamask://", id: "metamask" },
-                        { name: "Trust Wallet", deepLink: "trust://", id: "trust" },
-                        { name: "Coinbase Wallet", deepLink: "cbwallet://", id: "coinbase" },
-                        { name: "Uniswap", deepLink: "uniswap://", id: "uniswap" }
-                    ]
-                });
+        function initWeb3Modal() {
+            if (!window.Web3ModalHtml) {
+                console.error("❌ Web3Modal nicht geladen! Überprüfe das Script.");
+                return;
             }
 
-            async function connectWallet() {
-                console.log("🟢 Versuche Wallet zu verbinden...");
-                try {
-                    provider = await web3Modal.connect();
-                    web3 = new Web3(provider);
-                    
-                    const accounts = await web3.eth.getAccounts();
-                    if (accounts.length > 0) {
-                        console.log("✅ Wallet verbunden:", accounts[0]);
-                        connectedAccount.textContent = `✅ Verbunden: ${accounts[0]}`;
-                        connectButton.style.display = "none";
-                        disconnectButton.style.display = "block";
-                    } else {
-                        console.warn("⚠️ Keine Wallet-Adresse gefunden.");
-                    }
-                } catch (error) {
-                    console.error("❌ Fehler beim Verbinden der Wallet:", error);
-                    alert("Fehler beim Verbinden der Wallet! Siehe Konsole.");
+            console.log("🔗 Initialisiere Web3Modal...");
+            web3Modal = new window.Web3ModalHtml.Web3Modal({
+                projectId: WALLETCONNECT_PROJECT_ID,
+                themeMode: "dark",
+                mobileWallets: [
+                    { name: "MetaMask", deepLink: "metamask://", id: "metamask" },
+                    { name: "Trust Wallet", deepLink: "trust://", id: "trust" },
+                    { name: "Coinbase Wallet", deepLink: "cbwallet://", id: "coinbase" },
+                    { name: "Uniswap", deepLink: "uniswap://", id: "uniswap" }
+                ]
+            });
+        }
+
+        async function connectWallet() {
+            if (!web3Modal) {
+                console.error("❌ Web3Modal wurde nicht initialisiert!");
+                alert("Web3Modal nicht geladen. Bitte lade die Seite neu.");
+                return;
+            }
+
+            console.log("🟢 Versuche Wallet zu verbinden...");
+            try {
+                provider = await web3Modal.connect();
+                web3 = new Web3(provider);
+                
+                const accounts = await web3.eth.getAccounts();
+                if (accounts.length > 0) {
+                    console.log("✅ Wallet verbunden:", accounts[0]);
+                    connectedAccount.textContent = `✅ Verbunden: ${accounts[0]}`;
+                    connectButton.style.display = "none";
+                    disconnectButton.style.display = "block";
+                } else {
+                    console.warn("⚠️ Keine Wallet-Adresse gefunden.");
                 }
+            } catch (error) {
+                console.error("❌ Fehler beim Verbinden der Wallet:", error);
+                alert("Fehler beim Verbinden der Wallet! Siehe Konsole.");
             }
+        }
 
-            function disconnectWallet() {
-                console.log("🔴 Wallet wird getrennt...");
-                if (web3Modal.clearCachedProvider) {
-                    web3Modal.clearCachedProvider();
-                }
-                provider = null;
-                web3 = null;
-                connectedAccount.textContent = "⚠️ Nicht verbunden";
-                connectButton.style.display = "block";
-                disconnectButton.style.display = "none";
+        function disconnectWallet() {
+            console.log("🔴 Wallet wird getrennt...");
+            if (web3Modal && web3Modal.clearCachedProvider) {
+                web3Modal.clearCachedProvider();
             }
+            provider = null;
+            web3 = null;
+            connectedAccount.textContent = "⚠️ Nicht verbunden";
+            connectButton.style.display = "block";
+            disconnectButton.style.display = "none";
+        }
 
-            connectButton.addEventListener("click", connectWallet);
-            disconnectButton.addEventListener("click", disconnectWallet);
+        connectButton.addEventListener("click", connectWallet);
+        disconnectButton.addEventListener("click", disconnectWallet);
 
-            initWeb3Modal();
-        });
-    </script>
+        initWeb3Modal();
+    });
+</script>
+
 </body>
 </html>
