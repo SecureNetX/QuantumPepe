@@ -4,6 +4,23 @@
     <meta charset="utf-8">
     <title>WC</title>
     <script type="module" >
+     </head>
+<body>
+  <header>
+    <h1>QuantumPepe is here!</h1>
+  </header>
+  
+  <main>
+    <section>
+      <h2>Presale is live!</h2>
+      <p>Connect your wallet and secure your QuantumPepe!</p>
+      <button id="connect-wallet">Connect Wallet</button>
+      <button id="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
+      <p>Connected Account: <span id="account-address">Not connected</span></p>
+    </section>
+  </main>
+  
+  <script>
       import { EthereumClient, w3mConnectors, w3mProvider } from './node_modules/@web3modal/ethereum'
       import { Web3Modal } from './node_modules/@web3modal/html'
       import { configureChains, createClient } from './node_modules/@wagmi/core'
@@ -20,6 +37,10 @@
       })
       const ethereumClient = new EthereumClient(wagmiClient, chains)
       const web3modal = new Web3Modal({ projectId }, ethereumClient)
+   }
+      connectButton.addEventListener("click", connectWallet);
+      disconnectButton.addEventListener("click", disconnectWallet);
+    });
     </script>
   </head>
 
