@@ -1,51 +1,42 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>WC</title>
-    <script type="module" >
-     </head>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumPepe Presale</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
 <body>
-  <header>
-    <h1>QuantumPepe is here!</h1>
-  </header>
-  
-  <main>
-    <section>
-      <h2>Presale is live!</h2>
-      <p>Connect your wallet and secure your QuantumPepe!</p>
-      <button id="connect-wallet">Connect Wallet</button>
-      <button id="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
-      <p>Connected Account: <span id="account-address">Not connected</span></p>
-    </section>
-  </main>
-  
-  <script>
-      import { EthereumClient, w3mConnectors, w3mProvider } from './node_modules/@web3modal/ethereum'
-      import { Web3Modal } from './node_modules/@web3modal/html'
-      import { configureChains, createClient } from './node_modules/@wagmi/core'
-      import { arbitrum, mainnet, polygon } from './node_modules/@wagmi/core/chains'
+    <header>
+        <h1>QuantumPepe is here!</h1>
+    </header>
 
-      const chains = [arbitrum, mainnet, polygon]
-      const projectId = "c1b3c575703c52649f0a69c9e6b3e836",
+    <main>
+        <section class="presale">
+            <h2>Presale is live!</h2>
+            <p>Connect your wallet and secure your QuantumPepe!</p>
 
-      const { provider } = configureChains(chains, [w3mProvider({ projectId })])
-      const wagmiClient = createClient({
-        autoConnect: true,
-        connectors: w3mConnectors({ projectId, version: 1, chains }),
-        provider
-      })
-      const ethereumClient = new EthereumClient(wagmiClient, chains)
-      const web3modal = new Web3Modal({ projectId }, ethereumClient)
-   }
-      connectButton.addEventListener("click", connectWallet);
-      disconnectButton.addEventListener("click", disconnectWallet);
-    });
-    </script>
-  </head>
+            <div class="wallet-buttons">
+                <button class="wallet-button">Connect Wallet</button>
+                <button class="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
+            </div>
+            
+            <p id="connectedAccount">⚠️ Nicht verbunden</p>
+        </section>
+    </main>
 
-  <body>
-    <w3m-core-button></w3m-core-button>
-  </body>
+    <footer>
+        <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
+    </footer>
 
+    <!-- 🔗 Wichtige Skripte für Wallet-Verbindung -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@2/dist/umd/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@web3modal/html@2/dist/index.iife.js"></script>
+    
+    <!-- Unser eigenes Skript -->
+    <script src="connect.js"></script>
+</body>
 </html>
+
