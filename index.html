@@ -1,85 +1,30 @@
 <!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuantumPepe Presale</title>
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
-<script src="https://unpkg.com/web3modal"></script>
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.6.9/dist/ethers.umd.min.js"></script>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>WC</title>
+    <script type="module" >
+      import { EthereumClient, w3mConnectors, w3mProvider } from './node_modules/@web3modal/ethereum'
+      import { Web3Modal } from './node_modules/@web3modal/html'
+      import { configureChains, createClient } from './node_modules/@wagmi/core'
+      import { arbitrum, mainnet, polygon } from './node_modules/@wagmi/core/chains'
 
-</head>
-<body>
-  <header>
-    <h1>QuantumPepe is here!</h1>
-  </header>
-  
-  <main>
-    <section>
-      <h2>Presale is live!</h2>
-      <p>Connect your wallet and secure your QuantumPepe!</p>
-      <button id="connect-wallet">Connect Wallet</button>
-      <button id="disconnect-wallet" style="display: none;">Disconnect Wallet</button>
-      <p>Connected Account: <span id="account-address">Not connected</span></p>
-    </section>
-  </main>
-  
-  <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-      const connectButton = document.getElementById("connect-wallet");
-      const disconnectButton = document.getElementById("disconnect-wallet");
-      const accountDisplay = document.getElementById("account-address");
+      const chains = [arbitrum, mainnet, polygon]
+      const projectId = 'YOUR_PROJECT_ID'
 
-      let provider = null;
-      let web3Modal = new Web3Modal.default({
-        cacheProvider: true,
-        providerOptions: {
-          walletconnect: {
-            package: window.WalletConnectProvider.default,
-            options: { rpc: { 1: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID" } }
-          }
-        }
-      });
+      const { provider } = configureChains(chains, [w3mProvider({ projectId })])
+      const wagmiClient = createClient({
+        autoConnect: true,
+        connectors: w3mConnectors({ projectId, version: 1, chains }),
+        provider
+      })
+      const ethereumClient = new EthereumClient(wagmiClient, chains)
+      const web3modal = new Web3Modal({ projectId }, ethereumClient)
+    </script>
+  </head>
 
-      async function connectWallet() {
-        try {
-          provider = await web3Modal.connect();
-          const web3Provider = new ethers.providers.Web3Provider(provider);
-          const signer = web3Provider.getSigner();
-          const account = await signer.getAddress();
-          accountDisplay.innerText = account;
-          connectButton.style.display = "none";
-          disconnectButton.style.display = "block";
-        } catch (error) {
-          console.error("Wallet connection failed:", error);
-        }
-      }
-      
-      async function disconnectWallet() {
-        if (provider && provider.disconnect) {
-          await provider.disconnect();
-        }
-        web3Modal.clearCachedProvider();
-        provider = null;
-        accountDisplay.innerText = "Not connected";
-        connectButton.style.display = "block";
-        disconnectButton.style.display = "none";
-      }
+  <body>
+    <w3m-core-button></w3m-core-button>
+  </body>
 
-      connectButton.addEventListener("click", connectWallet);
-      disconnectButton.addEventListener("click", disconnectWallet);
-    });
-  </script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const connectButton = document.querySelector(".wallet-button");
-    if (connectButton) {
-      connectButton.addEventListener("click", () => console.log("Button wurde geklickt!"));
-    } else {
-      console.error("Button nicht gefunden!");
-    }
-  });
-</script>
-
-</body>
 </html>
