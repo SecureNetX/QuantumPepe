@@ -4,9 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantumPepe Presale</title>
-  <!-- Falls du eine externe CSS-Datei verwendest, stelle sicher, dass der Pfad korrekt ist.
-       Andernfalls kann der Link entfernt werden.
-       <link rel="stylesheet" href="styles.css" /> -->
+  <!-- Falls du keine externe CSS-Datei hast, wird hier Inline-CSS genutzt -->
+  <link rel="stylesheet" href="styles.css" /> <!-- Falls vorhanden, sonst entfernen -->
   <style>
     /* Fallback-/Inline-CSS */
     body {
@@ -94,39 +93,8 @@
     .stage ul {
       list-style-type: disc;
       padding-left: 20px;
-      text-align: left;
       line-height: 2em;
       font-size: 1.1em;
-    }
-    .tokenomics {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 30px;
-      border-radius: 15px;
-      margin: 20px auto;
-      width: 80%;
-      text-align: center;
-      color: #ffffff;
-    }
-    .tokenomics h2 {
-      text-shadow: 0 0 10px #00ff00;
-    }
-    .tokenomics-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .tokenomics-info ul {
-      list-style: none;
-      padding: 0;
-      text-align: left;
-    }
-    .tokenomics-info li {
-      font-size: 1.2em;
-      margin: 10px 0;
-    }
-    .tokenomics-chart {
-      width: 300px;
-      height: 300px;
     }
     /* Bereich für den Token-Kauf */
     #purchaseSection {
@@ -149,6 +117,35 @@
       padding: 8px 16px;
       cursor: pointer;
     }
+    .tokenomics {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      border-radius: 15px;
+      margin: 20px auto;
+      width: 80%;
+      text-align: center;
+    }
+    .tokenomics h2 {
+      text-shadow: 0 0 10px #00ff00;
+    }
+    .tokenomics-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tokenomics-info ul {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+    }
+    .tokenomics-info li {
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+    .tokenomics-chart {
+      width: 300px;
+      height: 300px;
+    }
     footer {
       margin-top: 20px;
       padding: 10px;
@@ -163,6 +160,7 @@
   </header>
  
   <main>
+    <!-- Presale-Bereich -->
     <section class="presale">
       <h2>Presale is live!</h2>
       <p>Connect your wallet and secure your QuantumPepe!</p>
@@ -176,7 +174,8 @@
       </div>
       <img src="logo.webp" alt="QuantumPepe Logo" class="pepe-logo">
     </section>
-   
+    
+    <!-- Stages-Bereich -->
     <section class="stages">
       <div class="stage">
         <h3>Stage 1</h3>
@@ -204,8 +203,8 @@
         </ul>
       </div>
     </section>
-   
-    <!-- Bereich für den Token-Kauf -->
+    
+    <!-- Token-Kauf-Bereich -->
     <section id="purchaseSection">
       <h2>Buy Tokens</h2>
       <p>Enter the amount in ETH to spend:</p>
@@ -218,7 +217,8 @@
       </select>
       <button id="buyTokensButton">Buy Tokens</button>
     </section>
-   
+    
+    <!-- Tokenomics-Bereich -->
     <section class="tokenomics">
       <h2>QuantumPepe Tokenomics</h2>
       <div class="tokenomics-content">
@@ -249,42 +249,39 @@
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
   <!-- WalletConnect Provider -->
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
-  <!-- Coinbase Wallet SDK über unpkg -->
-  <script src="https://unpkg.com/@coinbase/wallet-sdk/dist/wallet-sdk.min.js"></script>
   <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
  
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
-      // Initialisiere das Tokenomics-Diagramm
-      const ctx = document.getElementById("tokenomicsChart").getContext("2d");
-      new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
-          datasets: [{
-            data: [40, 35, 10, 10, 5],
-            backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"]
-          }]
-        }
-      });
-     
+      // Tokenomics-Diagramm initialisieren (sofern das Canvas vorhanden ist)
+      const ctx = document.getElementById("tokenomicsChart")?.getContext("2d");
+      if (ctx) {
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
+            datasets: [{
+              data: [40, 35, 10, 10, 5],
+              backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"]
+            }]
+          }
+        });
+      }
+      
       // Mapping der unterstützten Netzwerke zu den Contract-Adressen
       const contractAddresses = {
-        // Ethereum Mainnet (Chain ID: 1)
         1: "0xYourEthereumContractAddress",
-        // Polygon Mainnet (Chain ID: 137)
         137: "0xYourPolygonContractAddress",
-        // Binance Smart Chain Mainnet (Chain ID: 56)
         56: "0xYourBSCContractAddress"
       };
-     
-      // Prüfe, ob WalletConnectProvider als .default verfügbar ist
+      
+      // WalletConnect-Provider prüfen
       const WCProvider = (WalletConnectProvider && WalletConnectProvider.default)
                           ? WalletConnectProvider.default
                           : WalletConnectProvider;
-     
-      // Konfiguration der Provider-Optionen für Web3Modal
+      
+      // Konfiguration der Provider-Optionen für Web3Modal inkl. injected Provider (z. B. MetaMask)
       const providerOptions = {
         injected: {
           display: {
@@ -298,26 +295,13 @@
           options: {
             infuraId: "ae19524c28104cafb33fe96211b9376e"
           }
-        },
-        coinbasewallet: {
-          package: CoinbaseWalletSDK,
-          options: {
-            appName: "QuantumPepe Presale",
-            infuraId: "ae19524c28104cafb33fe96211b9376e",
-            rpc: "", // Optional: eigene RPC-URL einfügen, falls gewünscht
-            chainId: 1,
-            darkMode: false
-          }
         }
       };
-     
-      // Nutze den richtigen Konstruktor für Web3Modal
+      
+      // Web3Modal-Instanz erstellen
       const Web3ModalConstructor = (Web3Modal && Web3Modal.default)
                                     ? Web3Modal.default
                                     : Web3Modal;
-      console.log("Using Web3Modal constructor:", Web3ModalConstructor);
-     
-      // Erstelle eine Instanz von Web3Modal (ohne disableInjectedProvider, damit injected Wallets angezeigt werden)
       const web3Modal = new Web3ModalConstructor({
         cacheProvider: false,
         providerOptions,
@@ -325,12 +309,12 @@
           mobileLinks: ["metamask", "trust", "coinbase", "rainbow"]
         }
       });
-     
+      
       // Globale Variablen
       let walletConnected = localStorage.getItem("walletConnected") === "true";
-      let connectedProvider = null; // Wird nach erfolgreicher Verbindung gesetzt
-     
-      // Funktion, um die Button-Anzeige zu aktualisieren
+      let connectedProvider = null;
+      
+      // Funktion zur Aktualisierung der Button-Anzeige
       function updateButtons() {
         if (walletConnected) {
           document.querySelector(".wallet-button").textContent = "Wallet Connected";
@@ -342,36 +326,61 @@
           document.querySelector(".disconnect-wallet").style.display = "none";
         }
       }
-     
       updateButtons();
-     
+      
+      // Dynamischer Import von CoinbaseWalletSDK (Workaround für Vite)
+      let CoinbaseWalletSDK;
+      try {
+        const module = await import('@coinbase/wallet-sdk');
+        // Je nach Build kann es als Default-Export oder als benannter Export vorliegen:
+        CoinbaseWalletSDK = module.default || module.CoinbaseWalletSDK;
+      } catch (error) {
+        console.error("Fehler beim Laden von CoinbaseWalletSDK:", error);
+      }
+      
+      if (!CoinbaseWalletSDK) {
+        console.error("CoinbaseWalletSDK konnte nicht gefunden werden.");
+      } else {
+        // Erstelle eine Instanz des Coinbase SDK
+        const coinbaseSDK = new CoinbaseWalletSDK({
+          appName: "QuantumPepe Presale",
+          appChainIds: [1]
+        });
+        
+        // Beispiel: Erzeuge einen Coinbase-Provider (optional – diesen kannst du in deine Logik einbinden)
+        try {
+          const cbProvider = await coinbaseSDK.makeWeb3Provider({ options: 'all' });
+          console.log("Coinbase Provider erfolgreich erstellt:", cbProvider);
+          // Du kannst diesen Provider ähnlich wie den injected Provider weiterverwenden.
+        } catch (error) {
+          console.error("Fehler beim Erstellen des Coinbase Providers:", error);
+        }
+      }
+      
       // Event-Listener für den "Connect Wallet"-Button
       const walletButton = document.querySelector(".wallet-button");
       walletButton.addEventListener("click", async function () {
         console.log("Wallet button clicked");
         try {
-          console.log("Opening Web3Modal for wallet selection...");
           const provider = await web3Modal.connect();
           console.log("Provider returned:", provider);
           connectedProvider = provider;
           const ethersProvider = new ethers.providers.Web3Provider(provider);
           const accounts = await ethersProvider.listAccounts();
-          console.log("Connected accounts:", accounts);
           if (accounts.length > 0) {
             walletConnected = true;
             localStorage.setItem("walletConnected", "true");
             updateButtons();
-            console.log("Connected account:", accounts[0]);
             alert("Wallet connected: " + accounts[0]);
           } else {
             alert("No account found. Please check your wallet.");
           }
         } catch (error) {
           console.error("Error connecting wallet via Web3Modal:", error);
-          alert("Failed to connect wallet. Please try again.");
+          alert("Failed to connect wallet. See console for details.");
         }
       });
-     
+      
       // Event-Listener für den "Disconnect Wallet"-Button
       const disconnectButton = document.querySelector(".disconnect-wallet");
       disconnectButton.addEventListener("click", async function () {
@@ -383,8 +392,8 @@
         updateButtons();
         alert("Wallet disconnected.");
       });
-     
-      // Funktion, um Token zu kaufen
+      
+      // Funktion, um Token zu kaufen – siehe Purchase Section
       async function purchaseTokens() {
         if (!walletConnected || !connectedProvider) {
           alert("Please connect your wallet first!");
@@ -393,24 +402,22 @@
         try {
           const ethersProvider = new ethers.providers.Web3Provider(connectedProvider);
           const signer = ethersProvider.getSigner();
-         
-          // Erhalte die aktuelle Netzwerkinformation
+          
+          // Netzwerkinformation abrufen
           const network = await ethersProvider.getNetwork();
           console.log("Current network:", network);
-         
-          // Hole das ausgewählte Netzwerk aus dem Dropdown
-          const selectedChainId = document.getElementById("networkSelect").value;
+          
+          // Ausgewähltes Netzwerk aus dem Dropdown
+          const selectedChainId = document.getElementById("networkSelect")?.value;
           console.log("Selected network:", selectedChainId);
-         
-          // Falls das aktuell verbundene Netzwerk nicht dem gewünschten entspricht, versuche zu wechseln
+          
+          // Falls aktuelles Netzwerk nicht passt, versuche es zu wechseln (funktioniert meist mit MetaMask)
           if (network.chainId.toString() !== selectedChainId) {
             try {
-              // Versuche, das Netzwerk zu wechseln (funktioniert bei MetaMask in der Regel)
               await window.ethereum.request({
                 method: "wallet_switchEthereumChain",
                 params: [{ chainId: "0x" + parseInt(selectedChainId).toString(16) }]
               });
-              // Aktualisiere die Netzwerkinformation
               const newNetwork = await ethersProvider.getNetwork();
               console.log("Switched network:", newNetwork);
               if (newNetwork.chainId.toString() !== selectedChainId) {
@@ -423,26 +430,26 @@
               return;
             }
           }
-         
-          // Wähle die entsprechende Contract-Adresse anhand der ausgewählten Chain-ID
+          
+          // Passende Contract-Adresse anhand der ausgewählten Chain-ID
           const contractAddress = contractAddresses[selectedChainId];
           if (!contractAddress) {
             alert("Unsupported network. Please choose Ethereum, Polygon, or Binance Smart Chain.");
             return;
           }
-         
-          // Ersetze diesen ABI-Platzhalter mit dem tatsächlichen ABI deines Presale-Contracts
+          
+          // ABI deines Presale-Contracts (hier als Platzhalter; ersetze dies mit deinem tatsächlichen ABI)
           const contractABI = [
             // Beispiel: "function buyTokens() public payable"
           ];
-         
+          
           const contract = new ethers.Contract(contractAddress, contractABI, signer);
-          const amount = document.getElementById("buyAmount").value;
+          const amount = document.getElementById("buyAmount")?.value;
           if (!amount || isNaN(amount)) {
             alert("Please enter a valid amount in ETH.");
             return;
           }
-         
+          
           // Sende die Transaktion an den Smart Contract
           const tx = await contract.buyTokens({ value: ethers.utils.parseEther(amount) });
           alert("Transaction sent. Waiting for confirmation...");
@@ -453,12 +460,13 @@
           alert("Token purchase failed. See console for details.");
         }
       }
-     
-      // Event-Listener für den "Buy Tokens"-Button
+      
       const buyTokensButton = document.getElementById("buyTokensButton");
-      buyTokensButton.addEventListener("click", purchaseTokens);
-     
-      // ★ Platzhalter: Weitere Logik für den Presale kann hier ergänzt werden.
+      if (buyTokensButton) {
+        buyTokensButton.addEventListener("click", purchaseTokens);
+      }
+      
+      // ★ Hier können weitere Funktionen für deinen Presale ergänzt werden.
     });
   </script>
 </body>
