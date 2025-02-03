@@ -4,7 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuantumPepe Presale</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: #004d00;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .presale {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            width: 50%;
+            text-align: center;
+        }
+        .wallet-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .wallet-button,
+        .disconnect-wallet {
+            width: 180px;
+            height: 45px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .wallet-button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+        }
+        .wallet-button:hover {
+            background: #33ff33;
+        }
+        .disconnect-wallet {
+            background: #ff0000;
+            color: #ffffff;
+            border: none;
+            display: none;
+        }
+        .disconnect-wallet:hover {
+            background: #cc0000;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -29,14 +77,78 @@
         <p>&copy; 2025 QuantumPepe. All rights reserved.</p>
     </footer>
 
-    <!-- 🔗 Wichtige Skripte für Wallet-Verbindung -->
+    <!-- 🔗 Web3 & WalletConnect Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@2/dist/umd/index.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@web3modal/html@2/dist/index.iife.js"></script>
-    
-    <!-- Unser eigenes Skript -->
-    <script src="connect.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            console.log("🚀 QuantumPepe Wallet Connector geladen!");
+
+            const WALLETCONNECT_PROJECT_ID = "c1b3c575703c52649f0a69c9e6b3e836"; 
+
+            const connectButton = document.querySelector(".wallet-button");
+            const disconnectButton = document.querySelector(".disconnect-wallet");
+            const connectedAccount = document.getElementById("connectedAccount");
+
+            let web3Modal;
+            let provider;
+            let web3;
+
+            function initWeb3Modal() {
+                console.log("🔗 Initialisiere Web3Modal...");
+                web3Modal = new window.Web3ModalHtml.Web3Modal({
+                    projectId: WALLETCONNECT_PROJECT_ID,
+                    themeMode: "dark",
+                    mobileWallets: [
+                        { name: "MetaMask", deepLink: "metamask://", id: "metamask" },
+                        { name: "Trust Wallet", deepLink: "trust://", id: "trust" },
+                        { name: "Coinbase Wallet", deepLink: "cbwallet://", id: "coinbase" },
+                        { name: "Uniswap", deepLink: "uniswap://", id: "uniswap" }
+                    ]
+                });
+            }
+
+            async function connectWallet() {
+                console.log("🟢 Versuche Wallet zu verbinden...");
+                try {
+                    provider = await web3Modal.connect();
+                    web3 = new Web3(provider);
+                    
+                    const accounts = await web3.eth.getAccounts();
+                    if (accounts.length > 0) {
+                        console.log("✅ Wallet verbunden:", accounts[0]);
+                        connectedAccount.textContent = `✅ Verbunden: ${accounts[0]}`;
+                        connectButton.style.display = "none";
+                        disconnectButton.style.display = "block";
+                    } else {
+                        console.warn("⚠️ Keine Wallet-Adresse gefunden.");
+                    }
+                } catch (error) {
+                    console.error("❌ Fehler beim Verbinden der Wallet:", error);
+                    alert("Fehler beim Verbinden der Wallet! Siehe Konsole.");
+                }
+            }
+
+            function disconnectWallet() {
+                console.log("🔴 Wallet wird getrennt...");
+                if (web3Modal.clearCachedProvider) {
+                    web3Modal.clearCachedProvider();
+                }
+                provider = null;
+                web3 = null;
+                connectedAccount.textContent = "⚠️ Nicht verbunden";
+                connectButton.style.display = "block";
+                disconnectButton.style.display = "none";
+            }
+
+            connectButton.addEventListener("click", connectWallet);
+            disconnectButton.addEventListener("click", disconnectWallet);
+
+            initWeb3Modal();
+        });
+    </script>
 </body>
 </html>
-
