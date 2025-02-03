@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantumPepe Presale</title>
-  <!-- Falls du keine externe CSS-Datei hast, wird hier Inline-CSS genutzt -->
-  <link rel="stylesheet" href="styles.css" /> <!-- Falls vorhanden, sonst entfernen -->
+  <!-- Falls du keine externe CSS-Datei hast, kannst du den Link entfernen -->
+  <link rel="stylesheet" href="styles.css" />
   <style>
     /* Fallback-/Inline-CSS */
     body {
@@ -245,7 +245,7 @@
   <!-- Externe Skripte -->
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Web3Modal -->
+  <!-- Web3Modal (v1) -->
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
   <!-- WalletConnect Provider -->
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
@@ -254,7 +254,7 @@
  
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
-      // Tokenomics-Diagramm initialisieren (sofern das Canvas vorhanden ist)
+      // Tokenomics-Diagramm initialisieren (falls das Canvas vorhanden ist)
       const ctx = document.getElementById("tokenomicsChart")?.getContext("2d");
       if (ctx) {
         new Chart(ctx, {
@@ -276,12 +276,13 @@
         56: "0xYourBSCContractAddress"
       };
       
-      // WalletConnect-Provider prüfen
+      // WalletConnect Provider prüfen – verwende den vorhandenen WCProvider
       const WCProvider = (WalletConnectProvider && WalletConnectProvider.default)
                           ? WalletConnectProvider.default
                           : WalletConnectProvider;
       
-      // Konfiguration der Provider-Optionen für Web3Modal inkl. injected Provider (z. B. MetaMask)
+      // Konfiguration der Provider-Optionen für Web3Modal
+      // Beachte: Hier wird der WalletConnect-Teil für v2 konfiguriert
       const providerOptions = {
         injected: {
           display: {
@@ -293,7 +294,10 @@
         walletconnect: {
           package: WCProvider,
           options: {
-            infuraId: "ae19524c28104cafb33fe96211b9376e"
+            version: 2, // WalletConnect v2 verwenden
+            projectId: "c1b3c575703c52649f0a69c9e6b3e836", // Deine Project-ID
+            relayUrl: "wss://relay.walletconnect.com", // v2 Relay-Endpoint
+            qrcode: true
           }
         }
       };
@@ -310,7 +314,7 @@
         }
       });
       
-      // Globale Variablen
+      // Globale Variablen zur Wallet-Verbindung
       let walletConnected = localStorage.getItem("walletConnected") === "true";
       let connectedProvider = null;
       
@@ -328,36 +332,7 @@
       }
       updateButtons();
       
-      // Dynamischer Import von CoinbaseWalletSDK (Workaround für Vite)
-      let CoinbaseWalletSDK;
-      try {
-        const module = await import('@coinbase/wallet-sdk');
-        // Je nach Build kann es als Default-Export oder als benannter Export vorliegen:
-        CoinbaseWalletSDK = module.default || module.CoinbaseWalletSDK;
-      } catch (error) {
-        console.error("Fehler beim Laden von CoinbaseWalletSDK:", error);
-      }
-      
-      if (!CoinbaseWalletSDK) {
-        console.error("CoinbaseWalletSDK konnte nicht gefunden werden.");
-      } else {
-        // Erstelle eine Instanz des Coinbase SDK
-        const coinbaseSDK = new CoinbaseWalletSDK({
-          appName: "QuantumPepe Presale",
-          appChainIds: [1]
-        });
-        
-        // Beispiel: Erzeuge einen Coinbase-Provider (optional – diesen kannst du in deine Logik einbinden)
-        try {
-          const cbProvider = await coinbaseSDK.makeWeb3Provider({ options: 'all' });
-          console.log("Coinbase Provider erfolgreich erstellt:", cbProvider);
-          // Du kannst diesen Provider ähnlich wie den injected Provider weiterverwenden.
-        } catch (error) {
-          console.error("Fehler beim Erstellen des Coinbase Providers:", error);
-        }
-      }
-      
-      // Event-Listener für den "Connect Wallet"-Button
+      // Event-Listener für "Connect Wallet"-Button
       const walletButton = document.querySelector(".wallet-button");
       walletButton.addEventListener("click", async function () {
         console.log("Wallet button clicked");
@@ -381,7 +356,7 @@
         }
       });
       
-      // Event-Listener für den "Disconnect Wallet"-Button
+      // Event-Listener für "Disconnect Wallet"-Button
       const disconnectButton = document.querySelector(".disconnect-wallet");
       disconnectButton.addEventListener("click", async function () {
         if (web3Modal && web3Modal.clearCachedProvider) {
@@ -393,7 +368,7 @@
         alert("Wallet disconnected.");
       });
       
-      // Funktion, um Token zu kaufen – siehe Purchase Section
+      // Funktion zum Kauf von Tokens (Purchase Section)
       async function purchaseTokens() {
         if (!walletConnected || !connectedProvider) {
           alert("Please connect your wallet first!");
@@ -411,7 +386,7 @@
           const selectedChainId = document.getElementById("networkSelect")?.value;
           console.log("Selected network:", selectedChainId);
           
-          // Falls aktuelles Netzwerk nicht passt, versuche es zu wechseln (funktioniert meist mit MetaMask)
+          // Falls aktuelles Netzwerk nicht passt, versuche es zu wechseln (funktioniert in der Regel mit MetaMask)
           if (network.chainId.toString() !== selectedChainId) {
             try {
               await window.ethereum.request({
@@ -438,7 +413,7 @@
             return;
           }
           
-          // ABI deines Presale-Contracts (hier als Platzhalter; ersetze dies mit deinem tatsächlichen ABI)
+          // ABI deines Presale-Contracts (Platzhalter – hier durch deinen tatsächlichen ABI ersetzen)
           const contractABI = [
             // Beispiel: "function buyTokens() public payable"
           ];
@@ -466,7 +441,7 @@
         buyTokensButton.addEventListener("click", purchaseTokens);
       }
       
-      // ★ Hier können weitere Funktionen für deinen Presale ergänzt werden.
+      // ★ Hier können weitere Funktionen für den Presale ergänzt werden.
     });
   </script>
 </body>
