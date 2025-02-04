@@ -251,6 +251,9 @@
   <script src="https://unpkg.com/@walletconnect/web3-provider@2.0.0-beta.0/dist/umd/index.min.js"></script>
   
   <script>
+    // Globalen Provider speichern (MetaMask oder WalletConnect)
+    let currentProvider = null;
+
     // Statusanzeige
     const statusEl = document.createElement("p");
     statusEl.id = "status";
@@ -262,6 +265,7 @@
       if (window.ethereum) {
         try {
           await window.ethereum.request({ method: "eth_requestAccounts" });
+          currentProvider = window.ethereum;
           const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
           const signer = ethersProvider.getSigner();
           const address = await signer.getAddress();
@@ -278,9 +282,13 @@
     // WalletConnect v2-Verbindung
     async function connectWalletConnect() {
       try {
-        // Hinweis: Für WalletConnect v2 muss die Beta-Version geladen sein.
-        const walletConnectProvider = new WalletConnectProvider.default({
-          // Ersetze "DEINE_PROJECT_ID" durch deine tatsächliche Project-ID von WalletConnect Cloud!
+        // Greife auf den globalen WalletConnectProvider zu (überprüfe ob default vorhanden ist)
+        const WCProvider = (window.WalletConnectProvider && window.WalletConnectProvider.default)
+                          ? window.WalletConnectProvider.default
+                          : window.WalletConnectProvider;
+
+        const walletConnectProvider = new WCProvider({
+          // Ersetze "c1b3c575703c52649f0a69c9e6b3e836" durch deine tatsächliche Project-ID von WalletConnect Cloud!
           projectId: "c1b3c575703c52649f0a69c9e6b3e836",
           relayUrl: "wss://relay.walletconnect.com",
           metadata: {
@@ -292,6 +300,7 @@
         });
         // Öffnet den QR-Code (bzw. Deep Link) und wartet auf die Verbindung
         await walletConnectProvider.enable();
+        currentProvider = walletConnectProvider;
         const ethersProvider = new ethers.providers.Web3Provider(walletConnectProvider);
         const signer = ethersProvider.getSigner();
         const address = await signer.getAddress();
@@ -302,9 +311,74 @@
       }
     }
 
-    // Event-Listener der Buttons
+    // Event-Listener der Wallet-Buttons
     document.getElementById("metamaskButton").addEventListener("click", connectMetaMask);
     document.getElementById("walletConnectButton").addEventListener("click", connectWalletConnect);
+
+    // Mapping der Contract-Adressen pro Netzwerk
+    const contractAddresses = {
+      1: "0xE6Cf560B8bD1654fe6d4c3ba0C27D25C51edCBe2",  // Ersetze diesen Platzhalter mit deiner Ethereum-Adresse
+      137: "0x8cc0fC1678AF2C73D30D4f61ebc0783d49210BeD",   // Ersetze diesen Platzhalter mit deiner Polygon-Adresse
+      56: "0x1851778016C05e0d498bd38A8E9807c6c4Afb6BA"           // Ersetze diesen Platzhalter mit deiner BSC-Adresse
+    };
+
+    // Beispiel ABI deines Presale-Smart-Contracts
+    // Ersetze diesen Platzhalter durch deinen tatsächlichen ABI-Eintrag, z.B.:
+    // const contractABI = ["function buyTokens() public payable"];
+    const contractABI = [
+      // Beispiel:
+      "function buyTokens() public payable"
+    ];
+
+    // Kauf-Funktion für Tokens
+    async function purchaseTokens() {
+      if (!currentProvider) {
+        alert("Bitte verbinde zuerst deine Wallet!");
+        return;
+      }
+      
+      try {
+        const ethersProvider = new ethers.providers.Web3Provider(currentProvider);
+        const signer = ethersProvider.getSigner();
+
+        // Erhalte Netzwerkinformationen (z.B. Chain-ID)
+        const network = await ethersProvider.getNetwork();
+        console.log("Aktuelles Netzwerk:", network);
+
+        // Hole die ausgewählte Chain-ID aus dem Dropdown
+        const selectedChainId = document.getElementById("networkSelect").value;
+        console.log("Ausgewähltes Netzwerk:", selectedChainId);
+
+        // Erhalte die richtige Contract-Adresse
+        const contractAddress = contractAddresses[selectedChainId];
+        if (!contractAddress) {
+          alert("Unsupported network. Please choose Ethereum, Polygon, or Binance Smart Chain.");
+          return;
+        }
+
+        // Erstelle den Contract
+        const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        // Lese den Betrag aus dem Eingabefeld
+        const amount = document.getElementById("buyAmount").value;
+        if (!amount || isNaN(amount)) {
+          alert("Bitte gib einen gültigen Betrag in ETH ein.");
+          return;
+        }
+
+        // Sende die Transaktion an die Funktion buyTokens() im Smart Contract
+        const tx = await contract.buyTokens({ value: ethers.utils.parseEther(amount) });
+        alert("Transaktion gesendet. Warte auf Bestätigung...");
+        await tx.wait();
+        alert("Tokens erfolgreich gekauft!");
+      } catch (error) {
+        console.error("Fehler beim Token-Kauf:", error);
+        alert("Token-Kauf fehlgeschlagen. Sieh in der Konsole nach Details.");
+      }
+    }
+
+    // Event-Listener für den "Buy Tokens"-Button
+    document.getElementById("buyTokensButton").addEventListener("click", purchaseTokens);
 
     // Tokenomics-Diagramm initialisieren (falls Canvas vorhanden)
     const ctx = document.getElementById("tokenomicsChart")?.getContext("2d");
@@ -320,8 +394,6 @@
         }
       });
     }
-    
-    // Weitere Funktionen wie der Token-Kauf können hier ergänzt werden …
   </script>
 </body>
 </html>
