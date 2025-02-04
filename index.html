@@ -37,38 +37,37 @@
       width: 50%;
       text-align: center;
     }
+    /* Styling der Wallet-Buttons */
     .wallet-buttons {
       display: flex;
       justify-content: center;
       gap: 10px;
       margin-top: 10px;
+      flex-wrap: wrap;
     }
-    .wallet-button,
-    .disconnect-wallet {
+    .wallet-button {
       width: 180px;
       height: 45px;
       font-size: 1.2em;
       border-radius: 8px;
+      border: none;
+      cursor: pointer;
     }
-    .wallet-button {
+    #metamaskButton {
       background: #00ff00;
       color: #000;
-      border: none;
-      cursor: pointer;
     }
-    .wallet-button:hover {
+    #metamaskButton:hover {
       background: #33ff33;
     }
-    .disconnect-wallet {
-      background: #ff0000;
-      color: #ffffff;
-      border: none;
-      cursor: pointer;
-      display: none;
+    #walletConnectButton {
+      background: #007bff;
+      color: #fff;
     }
-    .disconnect-wallet:hover {
-      background: #cc0000;
+    #walletConnectButton:hover {
+      background: #3399ff;
     }
+    /* Die weiteren Styles aus deinem Originalcode */
     .fund-info {
       margin-top: 10px;
       font-size: 1.1em;
@@ -164,9 +163,10 @@
     <section class="presale">
       <h2>Presale is live!</h2>
       <p>Connect your wallet and secure your QuantumPepe!</p>
+      <!-- Zwei Buttons für MetaMask und WalletConnect -->
       <div class="wallet-buttons">
-        <button class="wallet-button">Connect Wallet</button>
-        <button class="disconnect-wallet">Disconnect Wallet</button>
+        <button id="metamaskButton" class="wallet-button">Connect MetaMask</button>
+        <button id="walletConnectButton" class="wallet-button">Connect WalletConnect</button>
       </div>
       <div class="fund-info">
         <p>Total collected: <span id="total-collected">0</span> ETH</p>
@@ -245,202 +245,83 @@
   <!-- Externe Skripte -->
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Web3Modal (v1) -->
-  <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
-  <!-- WalletConnect Provider (v1) -->
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
- 
+  <!-- WalletConnect Provider v2 (Beta) -->
+  <script src="https://unpkg.com/@walletconnect/web3-provider@2.0.0-beta.0/dist/umd/index.min.js"></script>
+  
   <script>
-    document.addEventListener("DOMContentLoaded", async function () {
-      // Tokenomics-Diagramm initialisieren (falls das Canvas vorhanden ist)
-      const ctx = document.getElementById("tokenomicsChart")?.getContext("2d");
-      if (ctx) {
-        new Chart(ctx, {
-          type: "doughnut",
-          data: {
-            labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
-            datasets: [{
-              data: [40, 35, 10, 10, 5],
-              backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"]
-            }]
+    // Statusanzeige
+    const statusEl = document.createElement("p");
+    statusEl.id = "status";
+    statusEl.style.marginTop = "10px";
+    document.body.insertBefore(statusEl, document.body.firstChild);
+
+    // MetaMask-Verbindung
+    async function connectMetaMask() {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = ethersProvider.getSigner();
+          const address = await signer.getAddress();
+          statusEl.textContent = "MetaMask verbunden: " + address;
+        } catch (error) {
+          console.error("MetaMask Verbindung fehlgeschlagen:", error);
+          statusEl.textContent = "MetaMask Verbindung fehlgeschlagen.";
+        }
+      } else {
+        statusEl.textContent = "MetaMask nicht gefunden. Bitte installiere MetaMask.";
+      }
+    }
+
+    // WalletConnect v2-Verbindung
+    async function connectWalletConnect() {
+      try {
+        // Hinweis: Für WalletConnect v2 muss die Beta-Version geladen sein.
+        const walletConnectProvider = new WalletConnectProvider.default({
+          // Ersetze "DEINE_PROJECT_ID" durch deine tatsächliche Project-ID von WalletConnect Cloud!
+          projectId: "DEINE_PROJECT_ID",
+          relayUrl: "wss://relay.walletconnect.com",
+          metadata: {
+            name: "QuantumPepe Presale",
+            description: "Connect your wallet to buy QuantumPepe tokens",
+            url: "https://yourdapp.com",       // Passe diese URL an
+            icons: ["https://yourdapp.com/logo.png"] // Passe diese URL an
           }
         });
+        // Öffnet den QR-Code (bzw. Deep Link) und wartet auf die Verbindung
+        await walletConnectProvider.enable();
+        const ethersProvider = new ethers.providers.Web3Provider(walletConnectProvider);
+        const signer = ethersProvider.getSigner();
+        const address = await signer.getAddress();
+        statusEl.textContent = "WalletConnect verbunden: " + address;
+      } catch (error) {
+        console.error("WalletConnect Verbindung fehlgeschlagen:", error);
+        statusEl.textContent = "WalletConnect Verbindung fehlgeschlagen.";
       }
-      
-      // Mapping der unterstützten Netzwerke zu den Contract-Adressen
-      const contractAddresses = {
-        1: "0xYourEthereumContractAddress",
-        137: "0xYourPolygonContractAddress",
-        56: "0xYourBSCContractAddress"
-      };
-      
-      // WalletConnect Provider prüfen – Verwende den vorhandenen WCProvider
-      const WCProvider = (WalletConnectProvider && WalletConnectProvider.default)
-                          ? WalletConnectProvider.default
-                          : WalletConnectProvider;
-      
-      // Konfiguration der Provider-Optionen für Web3Modal  
-      // Hier wird WalletConnect v1 verwendet – daher Infura-ID angeben.
-      const providerOptions = {
-        injected: {
-          display: {
-            name: "MetaMask",
-            description: "Connect with your browser wallet"
-          },
-          package: null
-        },
-        walletconnect: {
-          package: WCProvider,
-          options: {
-            // Ersetze "DEINE_INFURA_ID" durch deine tatsächliche Infura-Projekt-ID.
-            infuraId: "ae19524c28104cafb33fe96211b9376e",
-          }
-        }
-      };
-      
-      // Web3Modal-Instanz erstellen
-      const Web3ModalConstructor = (Web3Modal && Web3Modal.default)
-                                    ? Web3Modal.default
-                                    : Web3Modal;
-      const web3Modal = new Web3ModalConstructor({
-        cacheProvider: false,
-        providerOptions,
-        qrcodeModalOptions: {
-          mobileLinks: ["metamask", "trust", "coinbase", "rainbow"]
+    }
+
+    // Event-Listener der Buttons
+    document.getElementById("metamaskButton").addEventListener("click", connectMetaMask);
+    document.getElementById("walletConnectButton").addEventListener("click", connectWalletConnect);
+
+    // Tokenomics-Diagramm initialisieren (falls Canvas vorhanden)
+    const ctx = document.getElementById("tokenomicsChart")?.getContext("2d");
+    if (ctx) {
+      new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
+          datasets: [{
+            data: [40, 35, 10, 10, 5],
+            backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"]
+          }]
         }
       });
-      
-      // Globale Variablen zur Wallet-Verbindung
-      let walletConnected = localStorage.getItem("walletConnected") === "true";
-      let connectedProvider = null;
-      
-      // Funktion zur Aktualisierung der Button-Anzeige
-      function updateButtons() {
-        if (walletConnected) {
-          document.querySelector(".wallet-button").textContent = "Wallet Connected";
-          document.querySelector(".wallet-button").style.backgroundColor = "#009900";
-          document.querySelector(".disconnect-wallet").style.display = "block";
-        } else {
-          document.querySelector(".wallet-button").textContent = "Connect Wallet";
-          document.querySelector(".wallet-button").style.backgroundColor = "#00ff00";
-          document.querySelector(".disconnect-wallet").style.display = "none";
-        }
-      }
-      updateButtons();
-      
-      // Event-Listener für "Connect Wallet"-Button
-      const walletButton = document.querySelector(".wallet-button");
-      walletButton.addEventListener("click", async function () {
-        console.log("Wallet button clicked");
-        try {
-          const provider = await web3Modal.connect();
-          console.log("Provider returned:", provider);
-          connectedProvider = provider;
-          const ethersProvider = new ethers.providers.Web3Provider(provider);
-          const accounts = await ethersProvider.listAccounts();
-          if (accounts.length > 0) {
-            walletConnected = true;
-            localStorage.setItem("walletConnected", "true");
-            updateButtons();
-            alert("Wallet connected: " + accounts[0]);
-          } else {
-            alert("No account found. Please check your wallet.");
-          }
-        } catch (error) {
-          console.error("Error connecting wallet via Web3Modal:", error);
-          alert("Failed to connect wallet. See console for details.");
-        }
-      });
-      
-      // Event-Listener für "Disconnect Wallet"-Button
-      const disconnectButton = document.querySelector(".disconnect-wallet");
-      disconnectButton.addEventListener("click", async function () {
-        if (web3Modal && web3Modal.clearCachedProvider) {
-          web3Modal.clearCachedProvider();
-        }
-        localStorage.removeItem("walletConnected");
-        walletConnected = false;
-        updateButtons();
-        alert("Wallet disconnected.");
-      });
-      
-      // Funktion zum Kauf von Tokens (Purchase Section)
-      async function purchaseTokens() {
-        if (!walletConnected || !connectedProvider) {
-          alert("Please connect your wallet first!");
-          return;
-        }
-        try {
-          const ethersProvider = new ethers.providers.Web3Provider(connectedProvider);
-          const signer = ethersProvider.getSigner();
-          
-          // Netzwerkinformation abrufen
-          const network = await ethersProvider.getNetwork();
-          console.log("Current network:", network);
-          
-          // Ausgewähltes Netzwerk aus dem Dropdown
-          const selectedChainId = document.getElementById("networkSelect")?.value;
-          console.log("Selected network:", selectedChainId);
-          
-          // Falls aktuelles Netzwerk nicht passt, versuche es zu wechseln (funktioniert in der Regel mit MetaMask)
-          if (network.chainId.toString() !== selectedChainId) {
-            try {
-              await window.ethereum.request({
-                method: "wallet_switchEthereumChain",
-                params: [{ chainId: "0x" + parseInt(selectedChainId).toString(16) }]
-              });
-              const newNetwork = await ethersProvider.getNetwork();
-              console.log("Switched network:", newNetwork);
-              if (newNetwork.chainId.toString() !== selectedChainId) {
-                alert("Network switch failed. Please switch manually in your wallet.");
-                return;
-              }
-            } catch (switchError) {
-              console.error("Error switching network:", switchError);
-              alert("Please switch to the selected network in your wallet and try again.");
-              return;
-            }
-          }
-          
-          // Passende Contract-Adresse anhand der ausgewählten Chain-ID
-          const contractAddress = contractAddresses[selectedChainId];
-          if (!contractAddress) {
-            alert("Unsupported network. Please choose Ethereum, Polygon, or Binance Smart Chain.");
-            return;
-          }
-          
-          // ABI deines Presale-Contracts (Platzhalter – hier durch deinen tatsächlichen ABI ersetzen)
-          const contractABI = [
-            // Beispiel: "function buyTokens() public payable"
-          ];
-          
-          const contract = new ethers.Contract(contractAddress, contractABI, signer);
-          const amount = document.getElementById("buyAmount")?.value;
-          if (!amount || isNaN(amount)) {
-            alert("Please enter a valid amount in ETH.");
-            return;
-          }
-          
-          // Sende die Transaktion an den Smart Contract
-          const tx = await contract.buyTokens({ value: ethers.utils.parseEther(amount) });
-          alert("Transaction sent. Waiting for confirmation...");
-          await tx.wait();
-          alert("Tokens purchased successfully!");
-        } catch (error) {
-          console.error("Error purchasing tokens:", error);
-          alert("Token purchase failed. See console for details.");
-        }
-      }
-      
-      const buyTokensButton = document.getElementById("buyTokensButton");
-      if (buyTokensButton) {
-        buyTokensButton.addEventListener("click", purchaseTokens);
-      }
-      
-      // ★ Hier können weitere Funktionen für den Presale ergänzt werden.
-    });
+    }
+    
+    // Weitere Funktionen wie der Token-Kauf können hier ergänzt werden …
   </script>
 </body>
 </html>
