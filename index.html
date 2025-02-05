@@ -326,6 +326,44 @@
     document.getElementById("metamaskButton").addEventListener("click", connectMetaMask);
   });
 </script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log("🟢 DOM vollständig geladen!");
+
+    const ctx = document.getElementById("tokenomicsChart")?.getContext("2d");
+    
+    if (!ctx) {
+      console.error("❌ Tokenomics Chart nicht gefunden! Überprüfe, ob das <canvas> Element existiert.");
+      return;
+    }
+
+    console.log("🟢 Tokenomics Chart gefunden! Initialisiere...");
+
+    new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["Liquidity Pool", "Presale", "Reserve", "Team", "Marketing"],
+        datasets: [{
+          data: [45, 25, 15, 10, 5],
+          backgroundColor: ["#28a745", "#007bff", "#ffca28", "#dc3545", "#6f42c1"]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#ffffff',
+            }
+          }
+        }
+      }
+    });
+
+    console.log("✅ Tokenomics Chart erfolgreich geladen!");
+  });
+</script>
 
 
 </body>
