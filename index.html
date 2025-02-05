@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantumPepe Presale</title>
-  <!-- Falls du keine externe CSS-Datei hast, kannst du den Link entfernen -->
+  <!-- Falls du keine externe CSS-Datei hast, kannst du den Link entfernen oder den Pfad anpassen -->
   <link rel="stylesheet" href="styles.css" />
   <style>
     /* Fallback-/Inline-CSS */
@@ -247,7 +247,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <!-- WalletConnect Provider v2 (Beta) -->
+  <!-- WalletConnect Provider V2 (Beta) -->
   <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.2.0/dist/index.umd.min.js"></script>
 
   <script>
@@ -282,12 +282,9 @@
     // WalletConnect V2-Verbindung
     async function connectWalletConnect() {
       try {
-        // Zugriff auf den globalen WalletConnectProvider (V2)
-        const WCProvider = window.WalletConnectProvider?.default || window.WalletConnectProvider;
-
-        // Erstelle eine neue Instanz mit den notwendigen Parametern
-        const walletConnectProvider = new WCProvider({
-          projectId: "a6b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6", // Test-ID, wie du sie nutzt
+        // Bei WalletConnect V2 verwenden wir die init-Methode (ohne new):
+        const walletConnectProvider = await WalletConnectProvider.init({
+          projectId: "a6b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6", // Test-ID
           relayUrl: "wss://relay.walletconnect.com",
           chains: [1, 137, 56], // Unterstützte Netzwerke
           metadata: {
@@ -298,7 +295,7 @@
           }
         });
         
-        // V2 verwendet in der Regel die connect()-Methode statt enable()
+        // Verbinde die Wallet (V2 nutzt ebenfalls connect())
         await walletConnectProvider.connect();
 
         // Setze den aktuellen Provider
