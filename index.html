@@ -246,6 +246,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src="https://esm.sh/@walletconnect/ethereum-provider@2.2.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
 
 
 
@@ -388,5 +390,57 @@
       });
     }
   </script>
+<script>
+  let web3Modal;
+  let provider;
+
+  // 🔹 INIT-Funktion für Web3Modal und WalletConnect (NEU: Ohne Infura!)
+  async function init() {
+    console.log("Initializing Web3Modal");
+
+    web3Modal = new Web3Modal.default({
+      cacheProvider: false,
+      providerOptions: {
+        walletconnect: {
+          package: WalletConnectProvider.default,
+          options: {
+            rpc: {
+              1: "https://rpc.ankr.com/eth", // Ethereum Mainnet
+              137: "https://polygon-rpc.com", // Polygon Mainnet
+              56: "https://bsc-dataseed.binance.org/" // BNB Smart Chain
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 🔹 WalletConnect Verbindung
+  async function connectWalletConnect() {
+    try {
+      provider = await web3Modal.connect();
+      console.log("Wallet verbunden:", provider);
+
+      const ethersProvider = new ethers.providers.Web3Provider(provider);
+      const signer = ethersProvider.getSigner();
+      const address = await signer.getAddress();
+
+      document.getElementById("status").textContent = "WalletConnect verbunden: " + address;
+    } catch (error) {
+      console.error("WalletConnect Verbindung fehlgeschlagen:", error);
+      alert("Fehler bei der Verbindung mit WalletConnect. Sieh in der Konsole nach Details.");
+    }
+  }
+
+  // 🔹 Event-Listener nach Laden der Seite aktivieren
+  document.addEventListener("DOMContentLoaded", () => {
+    init(); // 🚀 Web3Modal sofort starten!
+    document.getElementById("walletConnectButton").addEventListener("click", connectWalletConnect);
+  });
+</script>
+
+</body>
+</html>
+
 </body>
 </html>
