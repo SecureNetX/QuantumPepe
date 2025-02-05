@@ -243,38 +243,64 @@
   </footer>
  
   
-  <!-- ✅ Wichtige Bibliotheken (Nur einmal laden!) -->
+  <!-- ✅ Web3Modal & WalletConnect sauber eingebunden -->
 <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
 
 <script>
   let web3Modal;
   let provider;
 
-  // 🔹 1️⃣ INIT-Funktion für Web3Modal (muss zuerst geladen werden!)
+  // 🔹 1️⃣ INIT-Funktion für Web3Modal (richtige Initialisierung)
   async function init() {
     console.log("✅ Initializing Web3Modal...");
 
-    web3Modal = new Web3Modal.default({
+    web3Modal = new window.Web3Modal.default({
       cacheProvider: false,
       providerOptions: {
         walletconnect: {
-          package: WalletConnectProvider.default,
+          package: window.WalletConnectProvider.default,
           options: {
             rpc: {
               1: "https://rpc.ankr.com/eth", // Ethereum Mainnet
               137: "https://polygon-rpc.com", // Polygon Mainnet
               56: "https://bsc-dataseed.binance.org" // BNB Smart Chain
             },
-            projectId: "b1bb35681e2d9e0386e83b4fdfbb78d1" // Deine WalletConnect Project ID
+            projectId: "b1bb35681e2d9e0386e83b4fdfbb78d1" // WalletConnect Project ID
           }
         }
       }
     });
+
+    console.log("✅ Web3Modal erfolgreich geladen!");
   }
 
-  // 🔹 2️⃣ MetaMask Verbindung
+  // 🔹 2️⃣ WalletConnect Verbindung (nur aufrufen, wenn Web3Modal existiert!)
+  async function connectWalletConnect() {
+    try {
+      if (!web3Modal) {
+        console.error("❌ Web3Modal ist nicht initialisiert!");
+        alert("Web3Modal wurde nicht geladen. Lade die Seite neu.");
+        return;
+      }
+
+      provider = await web3Modal.connect();
+      console.log("✅ Wallet verbunden:", provider);
+
+      const ethersProvider = new ethers.providers.Web3Provider(provider);
+      const signer = ethersProvider.getSigner();
+      const address = await signer.getAddress();
+
+      document.getElementById("status").textContent = "WalletConnect verbunden: " + address;
+    } catch (error) {
+      console.error("❌ WalletConnect Verbindung fehlgeschlagen:", error);
+      alert("Fehler bei der Verbindung mit WalletConnect. Sieh in der Konsole nach Details.");
+    }
+  }
+
+  // 🔹 3️⃣ MetaMask Verbindung (kein Web3Modal nötig)
   async function connectMetaMask() {
     if (window.ethereum) {
       try {
@@ -293,30 +319,14 @@
     }
   }
 
-  // 🔹 3️⃣ WalletConnect Verbindung
-  async function connectWalletConnect() {
-    try {
-      provider = await web3Modal.connect();
-      console.log("✅ Wallet verbunden:", provider);
-
-      const ethersProvider = new ethers.providers.Web3Provider(provider);
-      const signer = ethersProvider.getSigner();
-      const address = await signer.getAddress();
-
-      document.getElementById("status").textContent = "WalletConnect verbunden: " + address;
-    } catch (error) {
-      console.error("❌ WalletConnect Verbindung fehlgeschlagen:", error);
-      alert("Fehler bei der Verbindung mit WalletConnect. Sieh in der Konsole nach Details.");
-    }
-  }
-
   // 🔹 4️⃣ Event-Listener für Wallet-Buttons
-  document.addEventListener("DOMContentLoaded", () => {
-    init(); // 🚀 Web3Modal wird direkt gestartet!
+  document.addEventListener("DOMContentLoaded", async () => {
+    await init(); // 🚀 Web3Modal wird direkt gestartet!
     document.getElementById("walletConnectButton").addEventListener("click", connectWalletConnect);
     document.getElementById("metamaskButton").addEventListener("click", connectMetaMask);
   });
 </script>
+
 
 </body>
 </html>
