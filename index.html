@@ -68,9 +68,30 @@
     #walletConnectButton:hover {
       background: #3399ff;
     }
-    /* Container für den QR-Code */
-    #qrCodeContainer {
+    /* Modal für WalletConnect QR-Code */
+    #walletConnectModal {
+      display: none; /* erst sichtbar machen, wenn benötigt */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #walletConnectModal .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    #walletConnectModal button.close-btn {
       margin-top: 15px;
+      padding: 8px 16px;
+      cursor: pointer;
     }
     /* Weitere Styles */
     .fund-info {
@@ -159,6 +180,18 @@
   </style>
 </head>
 <body>
+  <!-- Statusanzeige -->
+  <p id="status" style="margin-top: 10px;"></p>
+
+  <!-- WalletConnect QR-Code Modal -->
+  <div id="walletConnectModal">
+    <div class="modal-content">
+      <h3>WalletConnect</h3>
+      <div id="qrCodeContainer"></div>
+      <button class="close-btn" id="closeModal">Schließen</button>
+    </div>
+  </div>
+
   <header>
     <h1 class="ai-title">QuantumPepe is here!</h1>
   </header>
@@ -173,8 +206,6 @@
         <button id="metamaskButton" class="wallet-button">Connect MetaMask</button>
         <button id="walletConnectButton" class="wallet-button">Connect WalletConnect</button>
       </div>
-      <!-- Container für den QR-Code (wird beim WalletConnect-Verbindungsaufbau gefüllt) -->
-      <div id="qrCodeContainer"></div>
       <div class="fund-info">
         <p>Total collected: <span id="total-collected">0</span> ETH</p>
         <p>Going to liquidity: <span id="liquidity-flow">0</span> ETH</p>
@@ -262,14 +293,9 @@
   <script>
     // Globalen Provider speichern (MetaMask oder WalletConnect)
     let currentProvider = null;
+    const statusEl = document.getElementById("status");
 
-    // Statusanzeige hinzufügen
-    const statusEl = document.createElement("p");
-    statusEl.id = "status";
-    statusEl.style.marginTop = "10px";
-    document.body.insertBefore(statusEl, document.body.firstChild);
-
-    // MetaMask-Verbindung
+    // Funktion: MetaMask-Verbindung
     async function connectMetaMask() {
       if (window.ethereum) {
         try {
@@ -279,8 +305,8 @@
           const signer = ethersProvider.getSigner();
           const address = await signer.getAddress();
           statusEl.textContent = "MetaMask verbunden: " + address;
-          // QR-Code-Container leeren, falls vorhanden
-          document.getElementById("qrCodeContainer").innerHTML = "";
+          // Falls das WalletConnect-Modal offen war, schließen:
+          closeModal();
         } catch (error) {
           console.error("MetaMask Verbindung fehlgeschlagen:", error);
           statusEl.textContent = "MetaMask Verbindung fehlgeschlagen.";
@@ -290,35 +316,27 @@
       }
     }
 
-    // WalletConnect V2-Verbindung
+    // Funktion: WalletConnect-Verbindung
     async function connectWalletConnect() {
       try {
         const WCProvider = window.WalletConnectProvider?.default || window.WalletConnectProvider;
-
-        // Erstelle eine neue Instanz mit den notwendigen Parametern
         const walletConnectProvider = new WCProvider({
-          projectId: "a6b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6", // Test-ID – ersetze sie durch deine eigene, wenn alles funktioniert.
+          projectId: "a6b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6", // Test-ID – ersetze sie durch deine eigene, wenn live
           relayUrl: "wss://relay.walletconnect.com",
-          chains: [1, 137, 56], // Unterstützte Netzwerke
+          chains: [1, 137, 56],
           metadata: {
             name: "QuantumPepe Presale",
             description: "Connect your wallet to buy QuantumPepe tokens",
-            url: "https://yourdapp.com",       // Passe diese URL an
-            icons: ["https://yourdapp.com/logo.png"] // Passe diese URL an
+            url: "https://yourdapp.com",
+            icons: ["https://yourdapp.com/logo.png"]
           }
         });
 
         // Abonniere das display_uri-Event, um den QR-Code URI zu erhalten
         walletConnectProvider.on("display_uri", (uri) => {
           console.log("WalletConnect QR Code URI:", uri);
-          // Erstelle oder aktualisiere den QR-Code im Container
-          const qrContainer = document.getElementById("qrCodeContainer");
-          qrContainer.innerHTML = ""; // Vorherigen Inhalt entfernen
-          new QRCode(qrContainer, {
-            text: uri,
-            width: 200,
-            height: 200
-          });
+          // QR-Code im Modal generieren
+          showModal(uri);
         });
 
         await walletConnectProvider.connect();
@@ -328,30 +346,15 @@
         const signer = ethersProvider.getSigner();
         const address = await signer.getAddress();
         statusEl.textContent = "WalletConnect verbunden: " + address;
+        // Modal wieder schließen, sobald die Verbindung hergestellt ist
+        closeModal();
       } catch (error) {
         console.error("WalletConnect Verbindung fehlgeschlagen:", error);
         statusEl.textContent = "WalletConnect Verbindung fehlgeschlagen.";
       }
     }
 
-    // Event-Listener der Wallet-Buttons
-    document.getElementById("metamaskButton").addEventListener("click", connectMetaMask);
-    document.getElementById("walletConnectButton").addEventListener("click", connectWalletConnect);
-
-    // Mapping der Contract-Adressen pro Netzwerk
-    const contractAddresses = {
-      1: "0xE6Cf560B8bD1654fe6d4c3ba0C27D25C51edCBe2",  // Ersetze diesen Platzhalter mit deiner Ethereum-Adresse
-      137: "0x8cc0fC1678AF2C73D30D4f61ebc0783d49210BeD",   // Ersetze diesen Platzhalter mit deiner Polygon-Adresse
-      56: "0x1851778016C05e0d498bd38A8E9807c6c4Afb6BA"     // Ersetze diesen Platzhalter mit deiner BSC-Adresse
-    };
-
-    // Beispiel ABI deines Presale-Smart-Contracts
-    const contractABI = [
-      // Beispiel: Ersetze diesen Eintrag durch deine tatsächliche ABI
-      "function buyTokens() public payable"
-    ];
-
-    // Kauf-Funktion für Tokens
+    // Funktion: Kauf von Tokens
     async function purchaseTokens() {
       if (!currentProvider) {
         alert("Bitte verbinde zuerst deine Wallet!");
@@ -362,32 +365,38 @@
         const ethersProvider = new ethers.providers.Web3Provider(currentProvider);
         const signer = ethersProvider.getSigner();
 
-        // Erhalte Netzwerkinformationen (z. B. Chain-ID)
+        // Erhalte Netzwerkinformationen
         const network = await ethersProvider.getNetwork();
         console.log("Aktuelles Netzwerk:", network);
 
-        // Hole die ausgewählte Chain-ID aus dem Dropdown
+        // Ausgewählte Chain-ID aus dem Dropdown
         const selectedChainId = document.getElementById("networkSelect").value;
         console.log("Ausgewähltes Netzwerk:", selectedChainId);
 
         // Erhalte die richtige Contract-Adresse
+        const contractAddresses = {
+          1: "0xE6Cf560B8bD1654fe6d4c3ba0C27D25C51edCBe2",
+          137: "0x8cc0fC1678AF2C73D30D4f61ebc0783d49210BeD",
+          56: "0x1851778016C05e0d498bd38A8E9807c6c4Afb6BA"
+        };
         const contractAddress = contractAddresses[selectedChainId];
         if (!contractAddress) {
           alert("Unsupported network. Please choose Ethereum, Polygon, or Binance Smart Chain.");
           return;
         }
 
-        // Erstelle den Contract
+        // Beispiel-ABI (anpassen!)
+        const contractABI = [
+          "function buyTokens() public payable"
+        ];
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Lese den Betrag aus dem Eingabefeld
         const amount = document.getElementById("buyAmount").value;
         if (!amount || isNaN(amount)) {
           alert("Bitte gib einen gültigen Betrag in ETH ein.");
           return;
         }
 
-        // Sende die Transaktion an die Funktion buyTokens() im Smart Contract
         const tx = await contract.buyTokens({ value: ethers.utils.parseEther(amount) });
         alert("Transaktion gesendet. Warte auf Bestätigung...");
         await tx.wait();
@@ -398,8 +407,27 @@
       }
     }
 
-    // Event-Listener für den "Buy Tokens"-Button
+    // Funktionen zur Steuerung des WalletConnect-Modals
+    function showModal(uri) {
+      // Erzeuge den QR-Code im Container
+      const qrContainer = document.getElementById("qrCodeContainer");
+      qrContainer.innerHTML = "";
+      new QRCode(qrContainer, {
+        text: uri,
+        width: 200,
+        height: 200
+      });
+      document.getElementById("walletConnectModal").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("walletConnectModal").style.display = "none";
+    }
+
+    // Event-Listener der Buttons
+    document.getElementById("metamaskButton").addEventListener("click", connectMetaMask);
+    document.getElementById("walletConnectButton").addEventListener("click", connectWalletConnect);
     document.getElementById("buyTokensButton").addEventListener("click", purchaseTokens);
+    document.getElementById("closeModal").addEventListener("click", closeModal);
 
     // Tokenomics-Diagramm initialisieren (falls Canvas vorhanden)
     const ctx = document.getElementById("tokenomicsChart")?.getContext("2d");
@@ -418,3 +446,4 @@
   </script>
 </body>
 </html>
+
