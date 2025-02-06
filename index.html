@@ -174,7 +174,7 @@
       </div>
       <img src="logo.webp" alt="QuantumPepe Logo" class="pepe-logo">
     </section>
-    
+   
     <!-- Stages-Bereich -->
     <section class="stages">
       <div class="stage">
@@ -203,7 +203,7 @@
         </ul>
       </div>
     </section>
-    
+   
     <!-- Token-Kauf-Bereich -->
     <section id="purchaseSection">
       <h2>Buy Tokens</h2>
@@ -217,7 +217,7 @@
       </select>
       <button id="buyTokensButton">Buy Tokens</button>
     </section>
-    
+   
     <!-- Tokenomics-Bereich -->
     <section class="tokenomics">
       <h2>QuantumPepe Tokenomics</h2>
@@ -286,54 +286,97 @@
         const WCProvider = window.WalletConnectProvider?.default || window.WalletConnectProvider;
 
         // Erstelle eine neue Instanz mit den notwendigen Parametern
-        // WalletConnect V2 Provider konfigurieren
-const providerOptions = {
-  walletconnect: {
-    package: EthereumProvider, // Richtig für WalletConnect V2
-    options: {
-      projectId: "a6b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6", // Test-ID, später ersetzen!
-      chains: [1, 137, 56], // Ethereum, Polygon, Binance Smart Chain
-      rpcMap: {
-        1: "https://mainnet.infura.io/v3/YOUR_INFURA_ID",
-        137: "https://polygon-rpc.com",
-        56: "https://bsc-dataseed.binance.org/"
-      },
-      showQrModal: true
+        const walletConnectProvider = new WCProvider({
+          projectId: "a6b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6", // Test-ID, wie du sie nutzt
+          relayUrl: "wss://relay.walletconnect.com",
+          chains: [1, 137, 56], // Unterstützte Netzwerke
+          metadata: {
+            name: "QuantumPepe Presale",
+            description: "Connect your wallet to buy QuantumPepe tokens",
+            url: "https://yourdapp.com",       // Passe diese URL an
+            icons: ["https://yourdapp.com/logo.png"] // Passe diese URL an
+          }
+        });
+       
+        // V2 verwendet in der Regel die connect()-Methode statt enable()
+        await walletConnectProvider.connect();
+
+        // Setze den aktuellen Provider
+        currentProvider = walletConnectProvider;
+
+        const ethersProvider = new ethers.providers.Web3Provider(walletConnectProvider);
+        const signer = ethersProvider.getSigner();
+        const address = await signer.getAddress();
+        statusEl.textContent = "WalletConnect verbunden: " + address;
+      } catch (error) {
+        console.error("WalletConnect Verbindung fehlgeschlagen:", error);
+        statusEl.textContent = "WalletConnect Verbindung fehlgeschlagen.";
+      }
     }
-  }
-};
 
-// Funktion zum Verbinden mit WalletConnect V2
-async function connectWalletConnect() {
-  try {
-    console.log("Starte WalletConnect Verbindung...");
+    // Event-Listener der Wallet-Buttons
+    document.getElementById("metamaskButton").addEventListener("click", connectMetaMask);
+    document.getElementById("walletConnectButton").addEventListener("click", connectWalletConnect);
 
-    // Stelle sicher, dass die Bibliothek geladen ist
-    if (!window.EthereumProvider) {
-      throw new Error("EthereumProvider nicht gefunden. Stelle sicher, dass das WalletConnect-Skript richtig geladen wurde.");
+    // Mapping der Contract-Adressen pro Netzwerk
+    const contractAddresses = {
+      1: "0xE6Cf560B8bD1654fe6d4c3ba0C27D25C51edCBe2",  // Ersetze diesen Platzhalter mit deiner Ethereum-Adresse
+      137: "0x8cc0fC1678AF2C73D30D4f61ebc0783d49210BeD",   // Ersetze diesen Platzhalter mit deiner Polygon-Adresse
+      56: "0x1851778016C05e0d498bd38A8E9807c6c4Afb6BA"     // Ersetze diesen Platzhalter mit deiner BSC-Adresse
+    };
+
+    // Beispiel ABI deines Presale-Smart-Contracts
+    const contractABI = [
+      // Beispiel: Ersetze diesen Eintrag durch deine tatsächliche ABI
+      "function buyTokens() public payable"
+    ];
+
+    // Kauf-Funktion für Tokens
+    async function purchaseTokens() {
+      if (!currentProvider) {
+        alert("Bitte verbinde zuerst deine Wallet!");
+        return;
+      }
+     
+      try {
+        const ethersProvider = new ethers.providers.Web3Provider(currentProvider);
+        const signer = ethersProvider.getSigner();
+
+        // Erhalte Netzwerkinformationen (z. B. Chain-ID)
+        const network = await ethersProvider.getNetwork();
+        console.log("Aktuelles Netzwerk:", network);
+
+        // Hole die ausgewählte Chain-ID aus dem Dropdown
+        const selectedChainId = document.getElementById("networkSelect").value;
+        console.log("Ausgewähltes Netzwerk:", selectedChainId);
+
+        // Erhalte die richtige Contract-Adresse
+        const contractAddress = contractAddresses[selectedChainId];
+        if (!contractAddress) {
+          alert("Unsupported network. Please choose Ethereum, Polygon, or Binance Smart Chain.");
+          return;
+        }
+
+        // Erstelle den Contract
+        const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        // Lese den Betrag aus dem Eingabefeld
+        const amount = document.getElementById("buyAmount").value;
+        if (!amount || isNaN(amount)) {
+          alert("Bitte gib einen gültigen Betrag in ETH ein.");
+          return;
+        }
+
+        // Sende die Transaktion an die Funktion buyTokens() im Smart Contract
+        const tx = await contract.buyTokens({ value: ethers.utils.parseEther(amount) });
+        alert("Transaktion gesendet. Warte auf Bestätigung...");
+        await tx.wait();
+        alert("Tokens erfolgreich gekauft!");
+      } catch (error) {
+        console.error("Fehler beim Token-Kauf:", error);
+        alert("Token-Kauf fehlgeschlagen. Sieh in der Konsole nach Details.");
+      }
     }
-
-    // WalletConnect V2 initialisieren
-    const walletConnectProvider = await EthereumProvider.init(providerOptions.walletconnect.options);
-    
-    // Verbindung starten
-    await walletConnectProvider.connect();
-
-    // Ethereum Provider für Ethers.js erstellen
-    const web3Provider = new ethers.providers.Web3Provider(walletConnectProvider);
-    const signer = web3Provider.getSigner();
-    const address = await signer.getAddress();
-
-    document.getElementById("wallet-address").textContent = "Wallet verbunden: " + address;
-    console.log("WalletConnect erfolgreich verbunden:", address);
-  } catch (error) {
-    console.error("WalletConnect Verbindung fehlgeschlagen:", error);
-    document.getElementById("wallet-address").textContent = "WalletConnect Verbindung fehlgeschlagen.";
-  }
-}
-
-// Event-Listener für den Button
-document.getElementById("walletConnectButton").addEventListener("click", connectWalletConnect);
 
     // Event-Listener für den "Buy Tokens"-Button
     document.getElementById("buyTokensButton").addEventListener("click", purchaseTokens);
